@@ -21,7 +21,7 @@ class LocationsPageState extends State<LocationsPage> {
   bool standortErmittelt = false;
   bool mapLoaded = false;
 
-  final int maxSearchList=3;
+  final int maxSearchList = 3;
 
   List<_LocationDetails> _orte = <_LocationDetails>[];
   List<_LocationDetails> _orteGefunden = <_LocationDetails>[];
@@ -126,6 +126,20 @@ class LocationsPageState extends State<LocationsPage> {
       entfernung: 0,
     ));
 
+    // _orte.add(const _LocationDetails(
+    //   continent: 'Europa',
+    //   country: 'Deutschland',
+    //   state: 'Sachsen',
+    //   town: 'test',
+    //   adress: 'Poststraße 12, 07973 Greiz',
+    //   name: 'test',
+    //   description: 'gleich haben wir den salat',
+    //   imagePath: 'lib/images/greizbahnhof.jpg',
+    //   latitude: 51.047704813667444,
+    //   longitude: 13.576891718590858,
+    //   entfernung: 0,
+    // ));
+
     _currentSelectedIndex = 0;
     _canUpdateFocalLatLng = true;
     _mapController = MapTileLayerController();
@@ -178,7 +192,13 @@ class LocationsPageState extends State<LocationsPage> {
               entfernung: 0,
             ));
             _orteAnzeigenAufKarte.add(getkleinsteEntfernung());
-            getZoomLevel();
+
+            List<_LocationDetails> list = _orteAnzeigenAufKarte;
+            list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+            _LocationDetails median=getmedianEntfernung(list);
+            print("Median: ${median.name} Entfernung: ${median.entfernung}");
+
+            getZoomLevel(median.entfernung);
             _zoomPanBehavior.zoomLevel = zoomlevel;
             _currentSelectedIndex = 1;
           } else {
@@ -195,11 +215,24 @@ class LocationsPageState extends State<LocationsPage> {
             _orteAnzeigenAufKarte.removeLast();
           } else {
             _orteAnzeigenAufKarte.clear();
+            zoomlevel = 13;
+            _zoomPanBehavior.zoomLevel = zoomlevel;
           }
 
           for (_LocationDetails l in _orteAnzeigenInListe) {
             _orteAnzeigenAufKarte.add(l);
           }
+
+          if(isLocationavailable()){
+            List<_LocationDetails> list = _orteAnzeigenAufKarte;
+            list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+            _LocationDetails median=getmedianEntfernung(list);
+            print("Median: ${median.name} Entfernung: ${median.entfernung}");
+
+            getZoomLevel(median.entfernung);
+            _zoomPanBehavior.zoomLevel = zoomlevel;
+          }
+
         }
 
         for (var i = 0; i < _orteAnzeigenAufKarte.length; i++) {
@@ -523,8 +556,7 @@ class LocationsPageState extends State<LocationsPage> {
                                             softWrap: true,
                                             item.description,
                                             style: const TextStyle(
-                                                height: 0,
-                                                fontSize: 10),
+                                                height: 0, fontSize: 10),
                                           ),
                                         ),
                                       ))
@@ -551,7 +583,32 @@ class LocationsPageState extends State<LocationsPage> {
                   ),
                 ),
               ),
-              getPositionsmeldung(),
+
+              positionsMeldung.isNotEmpty ? Container(
+                color: Colors.grey[200],
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                child:
+                Row(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 0, right: 5, top: 0, bottom: 10),
+                      child: Icon(color: Colors.blue, size: 30, Icons.info_outlined),
+                    ),
+                    Expanded(
+                      child: Text(positionsMeldung,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          height: 0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ) : Container(),
+
             ],
           ),
         ),
@@ -774,17 +831,8 @@ class LocationsPageState extends State<LocationsPage> {
     }
   }
 
-  void getZoomLevel() {
-    double lat1 = _orteAnzeigenAufKarte[0].latitude;
-    double lon1 = _orteAnzeigenAufKarte[0].longitude;
+  void getZoomLevel(double distance) {
 
-    double lat2 = _orteAnzeigenAufKarte[1].latitude;
-    double lon2 = _orteAnzeigenAufKarte[1].longitude;
-
-    double dx = 71.5 * (lon1 - lon2);
-    double dy = 111.3 * (lat1 - lat2);
-
-    double distance = sqrt(dx * dx + dy * dy);
     print("Enfernung zum nähstem Ort: $distance");
 
     if (distance < 0.01) {
@@ -806,23 +854,31 @@ class LocationsPageState extends State<LocationsPage> {
       zoomlevel = 12;
     } else if (distance >= 7 && distance < 10) {
       print("Enfernung zum nähstem Ort zwischen 7 und 10 km.");
+      zoomlevel = 11;
     } else if (distance >= 10 && distance < 20) {
       print("Enfernung zum nähstem Ort zwischen 10 und 20 km.");
       zoomlevel = 10;
     } else if (distance >= 20 && distance < 50) {
       print("Enfernung zum nähstem Ort zwischen 20 und 50 km.");
+      zoomlevel = 9;
     } else if (distance >= 50 && distance < 100) {
       print("Enfernung zum nähstem Ort zwischen 50 und 100 km.");
+      zoomlevel = 8;
     } else if (distance >= 100 && distance < 300) {
       print("Enfernung zum nähstem Ort zwischen 100 und 300 km.");
+      zoomlevel = 7;
     } else if (distance >= 300 && distance < 600) {
       print("Enfernung zum nähstem Ort zwischen 300 und 600 km.");
+      zoomlevel=6;
     } else if (distance >= 600 && distance < 1000) {
       print("Enfernung zum nähstem Ort zwischen 600 und 1000 km.");
+      zoomlevel = 5;
     } else if (distance >= 1000 && distance < 3000) {
       print("Enfernung zum nähstem Ort zwischen 1000 und 3000 km.");
+      zoomlevel = 4;
     } else if (distance >= 3000 && distance < 7000) {
       print("Enfernung zum nähstem Ort zwischen 3000 und 7000 km.");
+      zoomlevel = 3;
     } else if (distance >= 7000) {
       print("Enfernung zum nähstem Ort größer gleich 7000 km.");
       zoomlevel = 2;
@@ -945,7 +1001,8 @@ class LocationsPageState extends State<LocationsPage> {
   void getItemsListe() {
     _orteAnzeigenInListe.clear();
     if ((this.showAllResults) ||
-        (this.showAllResults == false && _orteGefunden.length <= maxSearchList)) {
+        (this.showAllResults == false &&
+            _orteGefunden.length <= maxSearchList)) {
       for (_LocationDetails ort in _orteGefunden) {
         _orteAnzeigenInListe.add(ort);
       }
@@ -1061,6 +1118,7 @@ class LocationsPageState extends State<LocationsPage> {
                 positionsMeldung,
                 softWrap: true,
                 style: const TextStyle(
+                  height: 0,
                   fontWeight: FontWeight.bold,
                   color: Colors.blue,
                   fontSize: 16,
@@ -1118,6 +1176,27 @@ class LocationsPageState extends State<LocationsPage> {
     }
   }
 
+  _LocationDetails getmedianEntfernung(List<_LocationDetails> locations) {
+
+    if (locations.length == 2) {
+      return locations[1];
+    }
+    else if(locations.length > 2){
+
+      if(locations.length.isEven){
+        return locations[(locations.length ~/2)-1];
+      }
+      else{
+        return locations[(locations.length-1) ~/2];
+      }
+
+    }
+    else{
+      return locations[0];
+    }
+
+  }
+
   _LocationDetails getkleinsteEntfernung() {
     double kleinsteentfernung = 0;
     _LocationDetails d = const _LocationDetails(
@@ -1138,11 +1217,13 @@ class LocationsPageState extends State<LocationsPage> {
       double entfernung = berechneEntfernung(i);
       if (i == 0) {
         kleinsteentfernung = entfernung;
-        d = _orte[i];
+       _LocationDetails locationListe =_orte[i];
+        d =_LocationDetails(continent: locationListe.continent, country: locationListe.country, state: locationListe.state, town: locationListe.town, adress: locationListe.adress, name: locationListe.name, description: locationListe.description, imagePath: locationListe.imagePath, latitude: locationListe.latitude, longitude: locationListe.longitude, entfernung: entfernung);
       } else {
         if (entfernung < kleinsteentfernung) {
           kleinsteentfernung = entfernung;
-          d = _orte[i];
+          _LocationDetails locationListe =_orte[i];
+          d =_LocationDetails(continent: locationListe.continent, country: locationListe.country, state: locationListe.state, town: locationListe.town, adress: locationListe.adress, name: locationListe.name, description: locationListe.description, imagePath: locationListe.imagePath, latitude: locationListe.latitude, longitude: locationListe.longitude, entfernung: kleinsteentfernung);
         }
       }
     }
