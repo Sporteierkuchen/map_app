@@ -18,121 +18,130 @@ class LocationsPage extends StatefulWidget {
 class LocationsPageState extends State<LocationsPage> {
   Position? _currentPosition;
   String positionsMeldung = "";
-
   bool standortErmittelt = false;
-
   bool mapLoaded = false;
 
+  final int maxSearchList=3;
+
   List<_LocationDetails> _orte = <_LocationDetails>[];
+  List<_LocationDetails> _orteGefunden = <_LocationDetails>[];
+  List<_LocationDetails> _orteAnzeigenInListe = <_LocationDetails>[];
+  late List<_LocationDetails> _orteAnzeigenAufKarte;
 
   bool karteOhneGesuchteOrte = true;
   bool showAllResults = false;
-  bool karteNeu = true;
-  List<_LocationDetails> _orteGefunden = <_LocationDetails>[];
-
-  List<_LocationDetails> _orteAnzeigenInListe = <_LocationDetails>[];
 
   final fieldText = TextEditingController();
 
-  late List<_LocationDetails> _orteAnzeigenAufKarte;
-
-
-  late PageController _pageViewController;
   late MapTileLayerController _mapController;
   late MapZoomPanBehavior _zoomPanBehavior;
-  late double _cardHeight;
   late int _currentSelectedIndex;
   late int _previousSelectedIndex;
   late int _tappedMarkerIndex;
   late bool _canUpdateFocalLatLng;
-  late bool _canUpdateZoomLevel;
+  double zoomlevel = 2;
 
-  late MapController _mapController2;
+  late PageController _pageViewController;
+  bool updatePageviewsSelectedPage = false;
+  late double _cardHeight;
 
   @override
   void initState() {
     super.initState();
     print("init state");
 
-    _getCurrentPosition().whenComplete(() =>
-
-        setState(() {
-          standortErmittelt=true;
+    _getCurrentPosition().whenComplete(() => setState(() {
+          standortErmittelt = true;
           // Update your UI with the desired changes.
-        })
+        }));
 
-    );
+    _orte.add(const _LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Sachsen',
+      town: 'Leipzig',
+      adress: 'Willy-Brandt-Platz 7 04109 Leipzig',
+      name: 'Leipzig HBF',
+      description: 'beschreibung',
+      imagePath: 'lib/images/leipzig_hbf.jpg',
+      latitude: 51.344760,
+      longitude: 12.380221,
+      entfernung: 0,
+    ));
+
+    _orte.add(const _LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Sachsen',
+      town: 'Leipzig',
+      adress: 'Str. des 18. Oktober 100, 04299 Leipzig',
+      name: 'Völkerschlachtdenkmal in Leipzig.',
+      description:
+          'beschreibung uzgd d d d kd kdv dkv.y v cdx dkv dyk vdkvdl vlyd v vdlkjdk vdl vldvykv cvx vd lvdvl vd vd ll  vd lvdl vl ',
+      imagePath: 'lib/images/Völkerschlachtdenkmal.jpg',
+      latitude: 51.312367,
+      longitude: 12.413267,
+      entfernung: 0,
+    ));
+
+    _orte.add(const _LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Sachsen',
+      town: 'Leipzig',
+      adress: 'Markranstädter Str. 8A, 04229 Leipzig',
+      name: 'Jump House in Leipzig.',
+      description: 'jump house',
+      imagePath: 'lib/images/jumphouse.jpg',
+      latitude: 51.32607730986849,
+      longitude: 12.329589807395056,
+      entfernung: 0,
+    ));
+
+    _orte.add(const _LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Thüringen',
+      town: 'Greiz',
+      adress: 'Poststraße 12, 07973 Greiz',
+      name: 'Greiz Bahnhof',
+      description: 'gleich haben wir den salat',
+      imagePath: 'lib/images/greizbahnhof.jpg',
+      latitude: 50.65675405746982,
+      longitude: 12.194118651798352,
+      entfernung: 0,
+    ));
+
+    _orte.add(const _LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Sachsen',
+      town: 'Crimmitschau',
+      adress: 'Marienstraße 2, 08451 Crimmitschau',
+      name: 'Istanbul Döner Crimmitschau',
+      description: 'bester dönerladen in crimmitschau',
+      imagePath: 'lib/images/istanbuldöner.jpg',
+      latitude: 50.8089985123552,
+      longitude: 12.388050660955825,
+      entfernung: 0,
+    ));
 
     _currentSelectedIndex = 0;
     _canUpdateFocalLatLng = true;
-    _canUpdateZoomLevel = true;
     _mapController = MapTileLayerController();
 
     _orteAnzeigenAufKarte = <_LocationDetails>[];
 
-    _orte.add(const _LocationDetails(
-        continent: 'Europa',
-        country: 'Deutschland',
-        state: 'Sachsen',
-        town: 'Leipzig',
-        adress: 'Willy-Brandt-Platz 7 04109 Leipzig',
-        name: 'Leipzig HBF',
-        description: 'beschreibung',
-        imagePath: 'lib/images/leipzig_hbf.jpg',
-        latitude: 51.344760,
-        longitude: 12.380221));
-
-    _orte.add(const _LocationDetails(
-        continent: 'Europa',
-        country: 'Deutschland',
-        state: 'Sachsen',
-        town: 'Leipzig',
-        adress: 'Str. des 18. Oktober 100, 04299 Leipzig',
-        name: 'Völkerschlachtdenkmal in Leipzig.',
-        description:
-            'beschreibung uzgd d d d kd kdv dkv.y v cdx dkv dyk vdkvdl vlyd v vdlkjdk vdl vldvykv cvx vd lvdvl vd vd ll  vd lvdl vl ',
-        imagePath: 'lib/images/Völkerschlachtdenkmal.jpg',
-        latitude: 51.312367,
-        longitude: 12.413267));
-    print("icfbcb");
-    _orte.add(const _LocationDetails(
-        continent: 'Europa',
-        country: 'Deutschland',
-        state: 'Sachsen',
-        town: 'Leipzig',
-        adress: 'Markranstädter Str. 8A, 04229 Leipzig',
-        name: 'Jump House in Leipzig.',
-        description: 'jump house',
-        imagePath: 'lib/images/jumphouse.jpg',
-        latitude: 51.32607730986849,
-        longitude: 12.329589807395056));
-    print("ifgfhgfe");
-    _orte.add(const _LocationDetails(
-        continent: 'Europa',
-        country: 'Deutschland',
-        state: 'Thüringen',
-        town: 'Greiz',
-        adress: 'Poststraße 12, 07973 Greiz',
-        name: 'Greiz Bahnhof',
-        description: 'gleich haben wir den salat',
-        imagePath: 'lib/images/greizbahnhof.jpg',
-        latitude: 50.65675405746982,
-        longitude: 12.194118651798352));
-
     _zoomPanBehavior = MapZoomPanBehavior(
-      minZoomLevel: 4,
+      minZoomLevel: 2,
       maxZoomLevel: 15,
-      //  focalLatLng: MapLatLng(51, 12.5),
-      //       focalLatLng: MapLatLng(_orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
-      //        _orteAnzeigenAufKarte[_currentSelectedIndex].longitude),
       enableDoubleTapZooming: true,
       enableMouseWheelZooming: true,
     );
-
   }
 
   @override
-  void dispose() {
+  ispose() {
     print("Disposed");
     _pageViewController.dispose();
     _mapController.dispose();
@@ -140,97 +149,86 @@ class LocationsPageState extends State<LocationsPage> {
     super.dispose();
   }
 
-
-
-
   @override
   Widget build(BuildContext context) {
-
     if (standortErmittelt == true) {
       print("build");
-
-
-      if (karteNeu) {
-        print("Karte neu...currentselectedindex=0");
-        _currentSelectedIndex = 0;
-        karteNeu = false;
-      }
-
-
 
       if (mapLoaded == false) {
         print("Map wird neu geladen!");
 
-
         _mapController.clearMarkers();
-        if(karteOhneGesuchteOrte){
+        if (karteOhneGesuchteOrte) {
           print("Es wird die Karte ohne gesuchte Orte geladen!");
 
           _orteAnzeigenAufKarte.clear();
           if (isLocationavailable()) {
+            print("Standort steht zur Verfügung!");
             _orteAnzeigenAufKarte.add(_LocationDetails(
-                continent: "",
-                country: "",
-                state: "",
-                town: "testtown",
-                adress: "testadress",
-                name: "username",
-                description: "",
-                imagePath: 'lib/images/profilbild.jpg',
-                latitude: _currentPosition!.latitude,
-                longitude: _currentPosition!.longitude));
+              continent: "",
+              country: "",
+              state: "",
+              town: "testtown",
+              adress: "testadress",
+              name: "username",
+              description: "",
+              imagePath: 'lib/images/profilbild.jpg',
+              latitude: _currentPosition!.latitude,
+              longitude: _currentPosition!.longitude,
+              entfernung: 0,
+            ));
             _orteAnzeigenAufKarte.add(getkleinsteEntfernung());
+            getZoomLevel();
+            _zoomPanBehavior.zoomLevel = zoomlevel;
             _currentSelectedIndex = 1;
-
           } else {
+            print("Standort steht nicht zur Verfügung!");
             _orteAnzeigenAufKarte.add(_orte[0]);
+            zoomlevel = 13;
+            _zoomPanBehavior.zoomLevel = zoomlevel;
+            _currentSelectedIndex = 0;
+          }
+        } else {
+          print("Es wird die Karte mit gesuchten Orten geladen!");
+
+          if (isLocationavailable()) {
+            _orteAnzeigenAufKarte.removeLast();
+          } else {
+            _orteAnzeigenAufKarte.clear();
           }
 
-        }
-        else{
-          // print("Es wird die Karte mit gesuchten Orten geladen!");
-          //
-          // if (isLocationavailable()) {
-          //   _orteAnzeigenAufKarte.removeLast();
-          // } else {
-          //   _orteAnzeigenAufKarte.clear();
-          // }
-          //
-          // for (_LocationDetails l in _orteAnzeigenInListe) {
-          //   _orteAnzeigenAufKarte.add(l);
-          // }
-
+          for (_LocationDetails l in _orteAnzeigenInListe) {
+            _orteAnzeigenAufKarte.add(l);
+          }
         }
 
         for (var i = 0; i < _orteAnzeigenAufKarte.length; i++) {
-
           _mapController.insertMarker(i);
-
         }
+
+        _zoomPanBehavior.focalLatLng = MapLatLng(
+            _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
+            _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
 
         mapLoaded = true;
       }
 
-
-      _pageViewController = PageController(
-          keepPage: false,
-          initialPage: _currentSelectedIndex,
-          viewportFraction: //0.8,
-
-          (MediaQuery.of(context).orientation == Orientation.landscape)
-              ? 0.8
-              : 0.8
-      );
-
-      if (_canUpdateZoomLevel) {
-        _zoomPanBehavior.zoomLevel = 10;
-        _canUpdateZoomLevel = false;
+      if (updatePageviewsSelectedPage) {
+        print("PageView springt zur Seite des currentSelectedIndex!");
+        _pageViewController.jumpToPage(_currentSelectedIndex);
+        updatePageviewsSelectedPage = false;
       }
 
-      _cardHeight = (MediaQuery.of(context).orientation == Orientation.landscape)
-          ? MediaQuery.of(context).size.height * 0.27
-          : MediaQuery.of(context).size.height * 0.19;
+      _pageViewController = PageController(
+        keepPage: false,
+        initialPage: _currentSelectedIndex,
+        viewportFraction: 0.8,
+      );
 
+      _cardHeight =
+          (MediaQuery.of(context).orientation == Orientation.landscape)
+              ? MediaQuery.of(context).size.height * 0.27
+              : MediaQuery.of(context).size.height * 0.19;
 
       return SafeArea(
         child: SingleChildScrollView(
@@ -239,120 +237,108 @@ class LocationsPageState extends State<LocationsPage> {
             children: [
               (MediaQuery.of(context).orientation == Orientation.portrait)
                   ? Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(
-                        top: 25, left: 18, right: 18, bottom: 5),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
                       children: [
-                        Text(
-                          "Standorte",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            fontSize: 25,
+                        const Padding(
+                          padding: EdgeInsets.only(
+                              top: 25, left: 18, right: 18, bottom: 5),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Text(
+                                "Standorte",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                  fontSize: 25,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(
-                        top: 0, left: 18, right: 18, bottom: 10),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Text(
-                          'Hallo, Max.',
-                          style: TextStyle(
-                            fontWeight: FontWeight.normal,
-                            color: Colors.grey,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                    EdgeInsets.only(left: 18, right: 18, bottom: 0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        getSuchfeld(),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-                  : Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        top: 15, left: 18, right: 18, bottom: 5),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Standorte",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            fontSize: 25,
+                        const Padding(
+                          padding: EdgeInsets.only(
+                              top: 0, left: 18, right: 18, bottom: 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Text(
+                                'Hallo, Max.',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.grey,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.only(
-                              left: 0, right: 50, bottom: 0),
-                          child: getSuchfeld(),
+                          padding:
+                              EdgeInsets.only(left: 18, right: 18, bottom: 0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              getSuchfeld(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              top: 15, left: 18, right: 18, bottom: 5),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Standorte",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                  fontSize: 25,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 0, right: 50, bottom: 0),
+                                child: getSuchfeld(),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              Stack(alignment: AlignmentDirectional.topCenter, children: test()),
+              Stack(
+                  alignment: AlignmentDirectional.topCenter,
+                  children: getWidgets()),
             ],
           ),
         ),
       );
-
-
-    }
-    else{
-
+    } else {
       return SafeArea(
-
-          child:
-
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-
-                Expanded(
-                  child: Container(
-                    // width: ,
-                    color: Colors.red,
-                  ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Container(
+                  // width: ,
+                  color: Colors.red,
                 ),
-
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
       );
-
     }
-
   }
 
-
-
-
-  List<Widget> test() {
+  List<Widget> getWidgets() {
     List<Widget> widgets = <Widget>[];
 
     widgets.add(Column(
@@ -369,7 +355,6 @@ class LocationsPageState extends State<LocationsPage> {
           child: Stack(
             alignment: AlignmentDirectional.topCenter,
             children: <Widget>[
-
               Positioned.fill(
                 child: Image.asset(
                   'lib/images/maps_grid.png',
@@ -390,13 +375,9 @@ class LocationsPageState extends State<LocationsPage> {
                     /// current center point and the zoom level.
 
                     urlTemplate:
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 
                     zoomPanBehavior: _zoomPanBehavior,
-                    initialZoomLevel: 10,
-                    initialFocalLatLng: MapLatLng(
-                        _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
-                        _orteAnzeigenAufKarte[_currentSelectedIndex].longitude),
                     controller: _mapController,
                     initialMarkersCount: _orteAnzeigenAufKarte.length,
                     tooltipSettings: const MapTooltipSettings(
@@ -405,7 +386,7 @@ class LocationsPageState extends State<LocationsPage> {
 
                     markerBuilder: (BuildContext context, int index) {
                       final double markerSize =
-                      _currentSelectedIndex == index ? 40 : 25;
+                          _currentSelectedIndex == index ? 40 : 25;
                       return MapMarker(
                         latitude: _orteAnzeigenAufKarte[index].latitude,
                         longitude: _orteAnzeigenAufKarte[index].longitude,
@@ -428,7 +409,7 @@ class LocationsPageState extends State<LocationsPage> {
                             _zoomPanBehavior.focalLatLng = MapLatLng(
                                 _orteAnzeigenAufKarte[index].latitude,
                                 _orteAnzeigenAufKarte[index].longitude);
-                            _zoomPanBehavior.zoomLevel = 13;
+                            _zoomPanBehavior.zoomLevel = zoomlevel;
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
@@ -455,15 +436,10 @@ class LocationsPageState extends State<LocationsPage> {
                   child: PageView.builder(
                     itemCount: _orteAnzeigenAufKarte.length,
                     onPageChanged: _handlePageChange,
-                    controller:   _pageViewController ,
+                    controller: _pageViewController,
                     itemBuilder: (BuildContext context, int index) {
-
-                      // int a=_orteAnzeigenAufKarte.length;
-                      // print("itemcount: $a");
-
-                      //   _pageViewController.jumpToPage(_currentSelectedIndex);
                       final _LocationDetails item =
-                      _orteAnzeigenAufKarte[index];
+                          _orteAnzeigenAufKarte[index];
                       return Transform.scale(
                         scale: index == _currentSelectedIndex ? 1 : 0.85,
                         child: Material(
@@ -487,7 +463,7 @@ class LocationsPageState extends State<LocationsPage> {
                                       .latitude,
                                   _orteAnzeigenAufKarte[_currentSelectedIndex]
                                       .longitude);
-                              _zoomPanBehavior.zoomLevel = 10;
+                              _zoomPanBehavior.zoomLevel = zoomlevel;
                             },
                             child: Container(
                               padding: const EdgeInsets.all(10.0),
@@ -503,53 +479,58 @@ class LocationsPageState extends State<LocationsPage> {
                                 // Adding title and description for card.
                                 Expanded(
                                     child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          top: 0.0, right: 5.0),
-                                      child: Column(
-                                        crossAxisAlignment:
+                                  padding: const EdgeInsets.only(
+                                      top: 0.0, right: 5.0),
+                                  child: Column(
+                                    crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          Text(item.name,
-                                              softWrap: true,
-                                              maxLines: 2,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12),
-                                              textAlign: TextAlign.start),
-                                          Text(
-                                              "(${item.town}, ${item.state}, ${item.country})",
-                                              // maxLines: 1,
-                                              softWrap: true,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.grey,
-                                                  fontSize: 10),
-                                              textAlign: TextAlign.start),
-                                          const SizedBox(height: 3),
-                                          Text(item.adress,
-                                              softWrap: true,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.grey,
-                                                  fontSize: 10),
-                                              textAlign: TextAlign.start),
-                                          const SizedBox(height: 3),
-                                          Expanded(
-                                              child: Container(
-                                                // color: Colors.red,
-                                                child: SingleChildScrollView(
-                                                  padding: const EdgeInsets.only(
-                                                      top: 2.0, bottom: 2.0),
-                                                  child: Text(
-                                                    softWrap: true,
-                                                    item.description,
-                                                    style: TextStyle(fontSize: 10),
-                                                  ),
-                                                ),
-                                              ))
-                                        ],
-                                      ),
-                                    )),
+                                    children: <Widget>[
+                                      Text(item.name,
+                                          softWrap: true,
+                                          maxLines: 2,
+                                          style: const TextStyle(
+                                              height: 0,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12),
+                                          textAlign: TextAlign.start),
+                                      Text(
+                                          "(${item.town}, ${item.state}, ${item.country})",
+                                          // maxLines: 1,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                              height: 0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                              fontSize: 10),
+                                          textAlign: TextAlign.start),
+                                      const SizedBox(height: 3),
+                                      Text(item.adress,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                              height: 0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                              fontSize: 10),
+                                          textAlign: TextAlign.start),
+                                      const SizedBox(height: 3),
+                                      Expanded(
+                                          child: Container(
+                                        // color: Colors.red,
+                                        child: SingleChildScrollView(
+                                          padding: const EdgeInsets.only(
+                                              top: 2.0, bottom: 2.0),
+                                          child: Text(
+                                            softWrap: true,
+                                            item.description,
+                                            style: const TextStyle(
+                                                height: 0,
+                                                fontSize: 10),
+                                          ),
+                                        ),
+                                      ))
+                                    ],
+                                  ),
+                                )),
                                 // Adding Image for card.
                                 ClipRRect(
                                   borderRadius: const BorderRadius.all(
@@ -570,8 +551,7 @@ class LocationsPageState extends State<LocationsPage> {
                   ),
                 ),
               ),
-            getPositionsmeldung(),
-
+              getPositionsmeldung(),
             ],
           ),
         ),
@@ -579,7 +559,6 @@ class LocationsPageState extends State<LocationsPage> {
     ));
 
     if (karteOhneGesuchteOrte) {
-
       if (this.fieldText.value.text.trim().isEmpty) {
         print("Suchfeld leer!");
         this.fieldText.clear();
@@ -588,154 +567,154 @@ class LocationsPageState extends State<LocationsPage> {
         getItemsListe();
 
         widgets.add(SizedBox(
-             width: MediaQuery.of(context).size.width * 0.8,
-             child: Card(
-               color: Colors.white,
-               shape: RoundedRectangleBorder(
-                 side: BorderSide(color: Colors.black, width: 1.0),
-                 borderRadius: BorderRadius.circular(10.0),
-               ),
-               margin: EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 20),
-               elevation: 3,
-               child: Padding(
-                 padding: EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 0),
-                 child: Column(
-                   crossAxisAlignment: CrossAxisAlignment.start,
-                   children: [
-                     getPositionsmeldung(),
-                     const Padding(
-                       padding: EdgeInsets.only(bottom: 2),
-                       child: Text(
-                         "RESULTS",
-                         style: TextStyle(
-                           fontWeight: FontWeight.w900,
-                           color: Colors.black,
-                           fontSize: 16,
-                         ),
-                       ),
-                     ),
-                     _orteAnzeigenInListe.isEmpty
-                         ? const Padding(
-                             padding: EdgeInsets.only(bottom: 5),
-                             child: Text("Nichts gefunden!"),
-                           )
-                         : ListView.builder(
-                             shrinkWrap: true,
-                             physics: const NeverScrollableScrollPhysics(),
-                             itemCount: _orteAnzeigenInListe.length,
-                             itemBuilder: (context, index) {
-                               return GestureDetector(
-                                 onTap: () {
-                                   print("Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              side: const BorderSide(color: Colors.black, width: 1.0),
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            margin:
+                const EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 20),
+            elevation: 3,
+            child: Padding(
+              padding:
+                  const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  getPositionsmeldung(),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 2),
+                    child: Text(
+                      "RESULTS",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  _orteAnzeigenInListe.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.only(bottom: 5),
+                          child: Text("Nichts gefunden!"),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _orteAnzeigenInListe.length,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                print(
+                                    "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
 
-                                   setState(() {
+                                setState(() {
+                                  if (isLocationavailable()) {
+                                    _currentSelectedIndex = index + 1;
+                                  } else {
+                                    _currentSelectedIndex = index;
+                                  }
 
-                                   if( isLocationavailable()  ){
-                                     _currentSelectedIndex = index+1;
-                                     print("klickindexcur: $_currentSelectedIndex");
-                                   }
-                                   else{
-                                     _currentSelectedIndex = index;
-                                     print("klickindexcur: $_currentSelectedIndex");
-                                   }
-
-                                   // mapLoaded=false;
-                                   //   karteOhneGesuchteOrte = false;
-
-                                   //  karteNeu=true;
-                                   });
-                                 },
-                                 child: Container(
-                                     //color: Colors.blue,
-                                     margin:
-                                         const EdgeInsets.only(top: 5, bottom: 5),
-                                     child: Row(
-                                       mainAxisAlignment:
-                                           MainAxisAlignment.spaceBetween,
-                                       crossAxisAlignment:
-                                           CrossAxisAlignment.start,
-                                       children: [
-                                         Container(
-                                           //color: Colors.blue,
-                                           margin: const EdgeInsets.only(
-                                               left: 0,
-                                               right: 10,
-                                               top: 0,
-                                               bottom: 0),
-                                           child: Container(
-                                             padding: const EdgeInsets.only(
-                                                 left: 10,
-                                                 right: 10,
-                                                 top: 10,
-                                                 bottom: 10),
-                                             decoration: BoxDecoration(
-                                               borderRadius:
-                                                   BorderRadius.circular(10),
-                                               color: Colors.red,
-                                             ),
-                                             child: Text(
-                                               getEntfernung(index) + " km",
-                                               style: const TextStyle(
-                                                 fontWeight: FontWeight.bold,
-                                                 color: Colors.white,
-                                                 fontSize: 13,
-                                               ),
-                                             ),
-                                           ),
-                                         ),
-                                         Expanded(
-                                           child: Column(
-                                             crossAxisAlignment:
-                                                 CrossAxisAlignment.start,
-                                             children: [
-                                               Text(
-                                                 _orteAnzeigenInListe[index].name,
-                                                 softWrap: true,
-                                                 style: const TextStyle(
-                                                   fontWeight: FontWeight.bold,
-                                                   color: Colors.black,
-                                                   fontSize: 16,
-                                                 ),
-                                               ),
-                                               Text(
-                                                 "(${_orteAnzeigenInListe[index]
-                                                         .town}, ${_orteAnzeigenInListe[index]
-                                                         .state}, ${_orteAnzeigenInListe[index]
-                                                         .country})",
-                                                 softWrap: true,
-                                                 style: const TextStyle(
-                                                   fontWeight: FontWeight.bold,
-                                                   color: Colors.grey,
-                                                   fontSize: 14,
-                                                 ),
-                                               ),
-                                               const SizedBox(
-                                                 height: 5,
-                                               ),
-                                               Text(
-                                                 _orteAnzeigenInListe[index]
-                                                     .adress,
-                                                 softWrap: true,
-                                                 style: const TextStyle(
-                                                   fontWeight: FontWeight.normal,
-                                                   color: Colors.grey,
-                                                   fontSize: 14,
-                                                 ),
-                                               ),
-                                             ],
-                                           ),
-                                         ),
-                                       ],
-                                     )),
-                               );
-                             }),
-                     getAllResultsContainer(),
-                     const SizedBox(height: 10),
-                   ],
-                 ),
-               ),
-             ),
-           ));
+                                  mapLoaded = false;
+                                  karteOhneGesuchteOrte = false;
+                                  updatePageviewsSelectedPage = true;
+                                });
+                              },
+                              child: Container(
+                                  //color: Colors.blue,
+                                  margin:
+                                      const EdgeInsets.only(top: 5, bottom: 5),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        //color: Colors.blue,
+                                        margin: const EdgeInsets.only(
+                                            left: 0,
+                                            right: 10,
+                                            top: 0,
+                                            bottom: 0),
+                                        child: Container(
+                                          padding: const EdgeInsets.only(
+                                              left: 10,
+                                              right: 10,
+                                              top: 10,
+                                              bottom: 10),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: Colors.red,
+                                          ),
+                                          child: Text(
+                                            isLocationavailable()
+                                                ? "${roundDouble(_orteAnzeigenInListe[index].entfernung, 2)} km"
+                                                : "? km",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _orteAnzeigenInListe[index].name,
+                                              softWrap: true,
+                                              style: const TextStyle(
+                                                height: 0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            Text(
+                                              "(${_orteAnzeigenInListe[index].town}, ${_orteAnzeigenInListe[index].state}, ${_orteAnzeigenInListe[index].country})",
+                                              softWrap: true,
+                                              style: const TextStyle(
+                                                height: 0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                              height: 5,
+                                            ),
+                                            Text(
+                                              _orteAnzeigenInListe[index]
+                                                  .adress,
+                                              softWrap: true,
+                                              style: const TextStyle(
+                                                height: 0,
+                                                fontWeight: FontWeight.normal,
+                                                color: Colors.grey,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  )),
+                            );
+                          }),
+                  getAllResultsContainer(),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            ),
+          ),
+        ));
       }
     }
 
@@ -774,7 +753,7 @@ class LocationsPageState extends State<LocationsPage> {
       _zoomPanBehavior.focalLatLng = MapLatLng(
           _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
           _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
-      _zoomPanBehavior.zoomLevel = 10;
+      _zoomPanBehavior.zoomLevel = zoomlevel;
     }
 
     /// Updating the design of the selected marker. Please check the
@@ -782,6 +761,72 @@ class LocationsPageState extends State<LocationsPage> {
     _mapController
         .updateMarkers(<int>[_currentSelectedIndex, _previousSelectedIndex]);
     _canUpdateFocalLatLng = true;
+  }
+
+  Widget getMarkerIcon(double markersize, index) {
+    if (isLocationavailable() && index == 0) {
+      return Icon(Icons.person,
+          color: Colors.deepOrangeAccent, size: markersize);
+    } else {
+      return Icon(Icons.location_on,
+          color: _currentSelectedIndex == index ? Colors.blue : Colors.red,
+          size: markersize);
+    }
+  }
+
+  void getZoomLevel() {
+    double lat1 = _orteAnzeigenAufKarte[0].latitude;
+    double lon1 = _orteAnzeigenAufKarte[0].longitude;
+
+    double lat2 = _orteAnzeigenAufKarte[1].latitude;
+    double lon2 = _orteAnzeigenAufKarte[1].longitude;
+
+    double dx = 71.5 * (lon1 - lon2);
+    double dy = 111.3 * (lat1 - lat2);
+
+    double distance = sqrt(dx * dx + dy * dy);
+    print("Enfernung zum nähstem Ort: $distance");
+
+    if (distance < 0.01) {
+      print("Enfernung zum nähstem Ort kleiner als 0.01 km");
+    } else if (distance >= 0.01 && distance < 0.025) {
+      print("Enfernung zum nähstem Ort zwischen 0,01 und 0,025 km.");
+    } else if (distance >= 0.025 && distance < 0.07) {
+      print("Enfernung zum nähstem Ort zwischen 0,025 und 0,07 km.");
+    } else if (distance >= 0.07 && distance < 0.15) {
+      print("Enfernung zum nähstem Ort zwischen 0,07 und 0,15 km.");
+    } else if (distance >= 0.15 && distance < 0.4) {
+      print("Enfernung zum nähstem Ort zwischen 0,15 und 0,4 km.");
+    } else if (distance >= 0.4 && distance < 1) {
+      print("Enfernung zum nähstem Ort zwischen 0,4 und 1 km.");
+    } else if (distance >= 1 && distance < 3) {
+      print("Enfernung zum nähstem Ort zwischen 1 und 3 km.");
+    } else if (distance >= 3 && distance < 7) {
+      print("Enfernung zum nähstem Ort zwischen 3 und 7 km.");
+      zoomlevel = 12;
+    } else if (distance >= 7 && distance < 10) {
+      print("Enfernung zum nähstem Ort zwischen 7 und 10 km.");
+    } else if (distance >= 10 && distance < 20) {
+      print("Enfernung zum nähstem Ort zwischen 10 und 20 km.");
+      zoomlevel = 10;
+    } else if (distance >= 20 && distance < 50) {
+      print("Enfernung zum nähstem Ort zwischen 20 und 50 km.");
+    } else if (distance >= 50 && distance < 100) {
+      print("Enfernung zum nähstem Ort zwischen 50 und 100 km.");
+    } else if (distance >= 100 && distance < 300) {
+      print("Enfernung zum nähstem Ort zwischen 100 und 300 km.");
+    } else if (distance >= 300 && distance < 600) {
+      print("Enfernung zum nähstem Ort zwischen 300 und 600 km.");
+    } else if (distance >= 600 && distance < 1000) {
+      print("Enfernung zum nähstem Ort zwischen 600 und 1000 km.");
+    } else if (distance >= 1000 && distance < 3000) {
+      print("Enfernung zum nähstem Ort zwischen 1000 und 3000 km.");
+    } else if (distance >= 3000 && distance < 7000) {
+      print("Enfernung zum nähstem Ort zwischen 3000 und 7000 km.");
+    } else if (distance >= 7000) {
+      print("Enfernung zum nähstem Ort größer gleich 7000 km.");
+      zoomlevel = 2;
+    }
   }
 
   Widget getSuchfeld() {
@@ -794,29 +839,29 @@ class LocationsPageState extends State<LocationsPage> {
           : MediaQuery.of(context).size.width * 0.6,
       child: TextField(
         controller: fieldText,
-        style: TextStyle(
+        style: const TextStyle(
             color: Colors.black, fontSize: 18, decorationThickness: 0.0),
         textAlignVertical: TextAlignVertical.center,
         maxLength: 25,
         textInputAction: TextInputAction.search,
         onChanged: (value) {
-          //starteSuche(value);
+          starteSuche(value);
         },
         onSubmitted: (value) {
           // await _getCurrentPosition();
           starteSuche(value);
         },
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.only(),
+          contentPadding: const EdgeInsets.only(),
           filled: true,
           fillColor: Colors.white,
           counterText: "",
-          focusedBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(18.0)),
+          focusedBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(18.0)),
             borderSide: BorderSide(color: Colors.black, width: 2.0),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(18.0)),
+          enabledBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(18.0)),
             borderSide: BorderSide(color: Colors.black, width: 2.0),
           ),
           prefixIcon: GestureDetector(
@@ -824,7 +869,7 @@ class LocationsPageState extends State<LocationsPage> {
               //await _getCurrentPosition();
               starteSuche(fieldText.text);
             },
-            child: Icon(
+            child: const Icon(
               Icons.search_outlined,
               color: Colors.black,
               size: 25,
@@ -837,13 +882,13 @@ class LocationsPageState extends State<LocationsPage> {
                 setState(() {
                   karteOhneGesuchteOrte = true;
                   showAllResults = false;
-                  karteNeu = true;
-                  mapLoaded=false;
+                  mapLoaded = false;
                   fieldText.clear();
                   _orteGefunden.clear();
+                  updatePageviewsSelectedPage = true;
                 });
               },
-              child: Icon(
+              child: const Icon(
                 Icons.close_outlined,
                 color: Colors.black,
                 size: 20,
@@ -858,7 +903,7 @@ class LocationsPageState extends State<LocationsPage> {
     print("Ortssuche gestartet! Value: $value");
 
     if (value.trim().isNotEmpty) {
-       _orteGefunden.clear();
+      _orteGefunden.clear();
 
       for (_LocationDetails d in this._orte) {
         if (d.continent.toLowerCase().contains(value.toLowerCase().trim()) ||
@@ -869,41 +914,55 @@ class LocationsPageState extends State<LocationsPage> {
             d.name.toLowerCase().contains(value.toLowerCase().trim())) {
           print("Beschreibung " + d.name);
 
-          _orteGefunden.add(d);
+          _orteGefunden.add(_LocationDetails(
+              continent: d.continent,
+              country: d.country,
+              state: d.state,
+              town: d.town,
+              adress: d.adress,
+              name: d.name,
+              description: d.description,
+              imagePath: d.imagePath,
+              latitude: d.latitude,
+              longitude: d.longitude,
+              entfernung: getEntfernung(d)));
         }
+      }
+
+      if (isLocationavailable()) {
+        _orteGefunden.sort((a, b) => a.entfernung.compareTo(b.entfernung));
       }
     }
 
     setState(() {
+      mapLoaded = false;
       karteOhneGesuchteOrte = true;
       showAllResults = false;
-      karteNeu = true;
-      mapLoaded=false;
-
+      updatePageviewsSelectedPage = true;
     });
   }
 
   void getItemsListe() {
-   _orteAnzeigenInListe.clear();
+    _orteAnzeigenInListe.clear();
     if ((this.showAllResults) ||
-        (this.showAllResults == false && _orteGefunden.length <= 3)) {
+        (this.showAllResults == false && _orteGefunden.length <= maxSearchList)) {
       for (_LocationDetails ort in _orteGefunden) {
         _orteAnzeigenInListe.add(ort);
       }
     } else {
-      for (var i = 0; i < 3; i++) {
+      for (var i = 0; i < maxSearchList; i++) {
         _orteAnzeigenInListe.add(_orteGefunden.elementAt(i));
       }
     }
   }
 
   Widget getAllResultsContainer() {
-    if (this.showAllResults == false && _orteGefunden.length > 3) {
+    if (showAllResults == false && _orteGefunden.length > 3) {
       return GestureDetector(
         onTap: () {
           print("Show all Locations!");
           setState(() {
-            this.showAllResults = true;
+            showAllResults = true;
           });
         },
         child: Container(
@@ -917,9 +976,9 @@ class LocationsPageState extends State<LocationsPage> {
               borderRadius: BorderRadius.circular(10),
               color: Colors.grey,
             ),
-            child: Text(
+            child: const Text(
               "All Results",
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
                 fontSize: 18,
@@ -937,19 +996,16 @@ class LocationsPageState extends State<LocationsPage> {
     final hasPermission = await _handleLocationPermission();
     print("permission fertig!");
     if (!hasPermission) return;
-    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high,forceAndroidLocationManager: true ,timeLimit: const Duration(seconds: 1))
+    await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high,
+            forceAndroidLocationManager: true,
+            timeLimit: const Duration(seconds: 8))
         .then((Position position) {
-
       _currentPosition = position;
-      print("positionsermittlung fertig");
-
+      print("Positionsermittlung fertig");
     }).catchError((e) {
       print("Zeitüberschreitung bei der Positionsbestimmung!");
-      //debugPrint(e);
-
-      positionsMeldung =
-      'Ihr Standort konnte nicht bestimmt werden...!';
-
+      positionsMeldung = 'Ihr Standort konnte nicht bestimmt werden...!';
     });
   }
 
@@ -1019,22 +1075,19 @@ class LocationsPageState extends State<LocationsPage> {
     }
   }
 
-  String getEntfernung (int index) {
+  double getEntfernung(_LocationDetails l) {
     double lat1 = _currentPosition?.latitude ?? 0;
     double lon1 = _currentPosition?.longitude ?? 0;
 
-    double lat2 = _orteAnzeigenInListe[index].latitude;
-    double lon2 = _orteAnzeigenInListe[index].longitude;
+    double lat2 = l.latitude;
+    double lon2 = l.longitude;
 
     double dx = 71.5 * (lon1 - lon2);
     double dy = 111.3 * (lat1 - lat2);
 
     double distance = sqrt(dx * dx + dy * dy);
 
-    bool a = positionsMeldung.isEmpty;
-    print("Meldung empty?: $a ");
-
-    return positionsMeldung.isEmpty ? roundDouble(distance, 2).toString() : "?";
+    return distance;
   }
 
   double berechneEntfernung(int index) {
@@ -1067,17 +1120,19 @@ class LocationsPageState extends State<LocationsPage> {
 
   _LocationDetails getkleinsteEntfernung() {
     double kleinsteentfernung = 0;
-    _LocationDetails d = _LocationDetails(
-        continent: "",
-        country: "",
-        state: "",
-        town: "",
-        adress: "",
-        name: "",
-        description: "",
-        imagePath: "",
-        latitude: 0,
-        longitude: 0);
+    _LocationDetails d = const _LocationDetails(
+      continent: "",
+      country: "",
+      state: "",
+      town: "",
+      adress: "",
+      name: "",
+      description: "",
+      imagePath: "",
+      latitude: 0,
+      longitude: 0,
+      entfernung: 0,
+    );
 
     for (var i = 0; i < _orte.length; i++) {
       double entfernung = berechneEntfernung(i);
@@ -1093,18 +1148,6 @@ class LocationsPageState extends State<LocationsPage> {
     }
     return d;
   }
-
-  Widget getMarkerIcon(double markersize, index) {
-    if (isLocationavailable() && index == 0) {
-      return Icon(Icons.person,
-          color: Colors.deepOrangeAccent,
-          size: markersize);
-    } else {
-      return Icon(Icons.location_on,
-          color: _currentSelectedIndex == index ? Colors.blue : Colors.red,
-          size: markersize);
-    }
-  }
 }
 
 class _LocationDetails {
@@ -1119,6 +1162,7 @@ class _LocationDetails {
     required this.imagePath,
     required this.latitude,
     required this.longitude,
+    required this.entfernung,
   });
 
   final String continent;
@@ -1132,4 +1176,5 @@ class _LocationDetails {
   final String imagePath;
   final double latitude;
   final double longitude;
+  final double entfernung;
 }
