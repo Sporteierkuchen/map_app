@@ -1,10 +1,9 @@
 import 'dart:math';
 
-import 'package:decimal/decimal.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
 class LocationsPage extends StatefulWidget {
@@ -16,6 +15,7 @@ class LocationsPage extends StatefulWidget {
 }
 
 class LocationsPageState extends State<LocationsPage> {
+  Placemark? _currentPlace;
   Position? _currentPosition;
   String positionsMeldung = "";
   bool standortErmittelt = false;
@@ -50,17 +50,17 @@ class LocationsPageState extends State<LocationsPage> {
     super.initState();
     print("init state");
 
-    _getCurrentPosition().whenComplete(() => setState(() {
-          standortErmittelt = true;
-          // Update your UI with the desired changes.
-        }));
+    getPositionAndAdress().whenComplete(() => setState(() {
+      standortErmittelt = true;
+      // Update your UI with the desired changes.
+    }));
 
     _orte.add(const _LocationDetails(
       continent: 'Europa',
       country: 'Deutschland',
       state: 'Sachsen',
       town: 'Leipzig',
-      adress: 'Willy-Brandt-Platz 7 04109 Leipzig',
+      adress: 'Willy-Brandt-Platz 7, 04109 Leipzig',
       name: 'Leipzig HBF',
       description: 'beschreibung',
       imagePath: 'lib/images/leipzig_hbf.jpg',
@@ -77,7 +77,7 @@ class LocationsPageState extends State<LocationsPage> {
       adress: 'Str. des 18. Oktober 100, 04299 Leipzig',
       name: 'Völkerschlachtdenkmal in Leipzig.',
       description:
-          'beschreibung uzgd d d d kd kdv dkv.y v cdx dkv dyk vdkvdl vlyd v vdlkjdk vdl vldvykv cvx vd lvdvl vd vd ll  vd lvdl vl ',
+      'beschreibung uzgd d d d kd kdv dkv.y v cdx dkv dyk vdkvdl vlyd v vdlkjdk vdl vldvykv cvx vd lvdvl vd vd ll  vd lvdl vl ',
       imagePath: 'lib/images/Völkerschlachtdenkmal.jpg',
       latitude: 51.312367,
       longitude: 12.413267,
@@ -155,7 +155,7 @@ class LocationsPageState extends State<LocationsPage> {
   }
 
   @override
-  ispose() {
+  dispose() {
     print("Disposed");
     _pageViewController.dispose();
     _mapController.dispose();
@@ -180,12 +180,13 @@ class LocationsPageState extends State<LocationsPage> {
             print("Standort steht zur Verfügung!");
             _orteAnzeigenAufKarte.add(_LocationDetails(
               continent: "",
-              country: "",
-              state: "",
-              town: "testtown",
-              adress: "testadress",
-              name: "username",
-              description: "",
+              country: _currentPlace?.country ?? "",
+              state: _currentPlace?.administrativeArea ?? "",
+              town: _currentPlace?.locality ?? "",
+              adress:
+              "${_currentPlace?.street ?? ""}, ${_currentPlace?.postalCode ?? ""} ${_currentPlace?.locality ?? ""}",
+              name: "Username",
+              description: "Hier bist du!",
               imagePath: 'lib/images/profilbild.jpg',
               latitude: _currentPosition!.latitude,
               longitude: _currentPosition!.longitude,
@@ -204,7 +205,7 @@ class LocationsPageState extends State<LocationsPage> {
           } else {
             print("Standort steht nicht zur Verfügung!");
             _orteAnzeigenAufKarte.add(_orte[0]);
-            zoomlevel = 13;
+            zoomlevel = 14;
             _zoomPanBehavior.zoomLevel = zoomlevel;
             _currentSelectedIndex = 0;
           }
@@ -215,7 +216,7 @@ class LocationsPageState extends State<LocationsPage> {
             _orteAnzeigenAufKarte.removeLast();
           } else {
             _orteAnzeigenAufKarte.clear();
-            zoomlevel = 13;
+            zoomlevel = 14;
             _zoomPanBehavior.zoomLevel = zoomlevel;
           }
 
@@ -258,9 +259,9 @@ class LocationsPageState extends State<LocationsPage> {
       );
 
       _cardHeight =
-          (MediaQuery.of(context).orientation == Orientation.landscape)
-              ? MediaQuery.of(context).size.height * 0.27
-              : MediaQuery.of(context).size.height * 0.19;
+      (MediaQuery.of(context).orientation == Orientation.landscape)
+          ? MediaQuery.of(context).size.height * 0.27
+          : MediaQuery.of(context).size.height * 0.19;
 
       return SafeArea(
         child: SingleChildScrollView(
@@ -269,81 +270,81 @@ class LocationsPageState extends State<LocationsPage> {
             children: [
               (MediaQuery.of(context).orientation == Orientation.portrait)
                   ? Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(
+                        top: 25, left: 18, right: 18, bottom: 5),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.only(
-                              top: 25, left: 18, right: 18, bottom: 5),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Text(
-                                "Standorte",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                  fontSize: 25,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(
-                              top: 0, left: 18, right: 18, bottom: 10),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Text(
-                                'Hallo, Max.',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  color: Colors.grey,
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding:
-                              EdgeInsets.only(left: 18, right: 18, bottom: 0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              getSuchfeld(),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              top: 15, left: 18, right: 18, bottom: 5),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                "Standorte",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                  fontSize: 25,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 0, right: 50, bottom: 0),
-                                child: getSuchfeld(),
-                              ),
-                            ],
+                        Text(
+                          "Standorte",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontSize: 25,
                           ),
                         ),
                       ],
                     ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(
+                        top: 0, left: 18, right: 18, bottom: 10),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Text(
+                          'Hallo, Max.',
+                          style: TextStyle(
+                            fontWeight: FontWeight.normal,
+                            color: Colors.grey,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                    EdgeInsets.only(left: 18, right: 18, bottom: 0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        getSuchfeld(),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+                  : Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        top: 15, left: 18, right: 18, bottom: 5),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Standorte",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontSize: 25,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 0, right: 50, bottom: 0),
+                          child: getSuchfeld(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
               Stack(
                   alignment: AlignmentDirectional.topCenter,
                   children: getWidgets()),
@@ -353,16 +354,25 @@ class LocationsPageState extends State<LocationsPage> {
       );
     } else {
       return SafeArea(
-        child: Center(
+        child: Container(
+          color: Colors.white,
+          alignment: Alignment.center,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: Container(
-                  // width: ,
-                  color: Colors.red,
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: LoadingAnimationWidget.beat(
+                  color: Color(0xFF7B1A33),
+                  size: 100,
                 ),
               ),
+              Text('Ihr Standort wird ermittelt...',
+                  softWrap: true,
+                  style: const TextStyle(
+                      height: 0, fontWeight: FontWeight.bold, fontSize: 18),
+                  textAlign: TextAlign.center),
             ],
           ),
         ),
@@ -407,7 +417,7 @@ class LocationsPageState extends State<LocationsPage> {
                     /// current center point and the zoom level.
 
                     urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 
                     zoomPanBehavior: _zoomPanBehavior,
                     controller: _mapController,
@@ -418,7 +428,7 @@ class LocationsPageState extends State<LocationsPage> {
 
                     markerBuilder: (BuildContext context, int index) {
                       final double markerSize =
-                          _currentSelectedIndex == index ? 40 : 25;
+                      _currentSelectedIndex == index ? 40 : 25;
                       return MapMarker(
                         latitude: _orteAnzeigenAufKarte[index].latitude,
                         longitude: _orteAnzeigenAufKarte[index].longitude,
@@ -441,7 +451,13 @@ class LocationsPageState extends State<LocationsPage> {
                             _zoomPanBehavior.focalLatLng = MapLatLng(
                                 _orteAnzeigenAufKarte[index].latitude,
                                 _orteAnzeigenAufKarte[index].longitude);
+
                             _zoomPanBehavior.zoomLevel = zoomlevel;
+
+                            if (zoomlevel < 14) {
+                              print("Das Zoomlevel wurde auf 14 gestellt!");
+                              _zoomPanBehavior.zoomLevel = 14;
+                            }
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
@@ -471,7 +487,7 @@ class LocationsPageState extends State<LocationsPage> {
                     controller: _pageViewController,
                     itemBuilder: (BuildContext context, int index) {
                       final _LocationDetails item =
-                          _orteAnzeigenAufKarte[index];
+                      _orteAnzeigenAufKarte[index];
                       return Transform.scale(
                         scale: index == _currentSelectedIndex ? 1 : 0.85,
                         child: Material(
@@ -500,7 +516,7 @@ class LocationsPageState extends State<LocationsPage> {
                             child: Container(
                               padding: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
-                                color: Colors.greenAccent,
+                                color: Color(0xFFCAB69E),
                                 border: Border.all(
                                   color: const Color.fromRGBO(153, 153, 153, 1),
                                   width: 0.5,
@@ -511,57 +527,57 @@ class LocationsPageState extends State<LocationsPage> {
                                 // Adding title and description for card.
                                 Expanded(
                                     child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      top: 0.0, right: 5.0),
-                                  child: Column(
-                                    crossAxisAlignment:
+                                      padding: const EdgeInsets.only(
+                                          top: 0.0, right: 5.0),
+                                      child: Column(
+                                        crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(item.name,
-                                          softWrap: true,
-                                          maxLines: 2,
-                                          style: const TextStyle(
-                                              height: 0,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12),
-                                          textAlign: TextAlign.start),
-                                      Text(
-                                          "(${item.town}, ${item.state}, ${item.country})",
-                                          // maxLines: 1,
-                                          softWrap: true,
-                                          style: const TextStyle(
-                                              height: 0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey,
-                                              fontSize: 10),
-                                          textAlign: TextAlign.start),
-                                      const SizedBox(height: 3),
-                                      Text(item.adress,
-                                          softWrap: true,
-                                          style: const TextStyle(
-                                              height: 0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey,
-                                              fontSize: 10),
-                                          textAlign: TextAlign.start),
-                                      const SizedBox(height: 3),
-                                      Expanded(
-                                          child: Container(
-                                        // color: Colors.red,
-                                        child: SingleChildScrollView(
-                                          padding: const EdgeInsets.only(
-                                              top: 2.0, bottom: 2.0),
-                                          child: Text(
-                                            softWrap: true,
-                                            item.description,
-                                            style: const TextStyle(
-                                                height: 0, fontSize: 10),
-                                          ),
-                                        ),
-                                      ))
-                                    ],
-                                  ),
-                                )),
+                                        children: <Widget>[
+                                          Text(item.name,
+                                              softWrap: true,
+                                              maxLines: 2,
+                                              style: const TextStyle(
+                                                  height: 0,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12),
+                                              textAlign: TextAlign.start),
+                                          Text(
+                                              "(${item.town}, ${item.state}, ${item.country})",
+                                              // maxLines: 1,
+                                              softWrap: true,
+                                              style: const TextStyle(
+                                                  height: 0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.grey,
+                                                  fontSize: 10),
+                                              textAlign: TextAlign.start),
+                                          const SizedBox(height: 3),
+                                          Text(item.adress,
+                                              softWrap: true,
+                                              style: const TextStyle(
+                                                  height: 0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.grey,
+                                                  fontSize: 10),
+                                              textAlign: TextAlign.start),
+                                          const SizedBox(height: 3),
+                                          Expanded(
+                                              child: Container(
+                                                // color: Colors.red,
+                                                child: SingleChildScrollView(
+                                                  padding: const EdgeInsets.only(
+                                                      top: 2.0, bottom: 2.0),
+                                                  child: Text(
+                                                    softWrap: true,
+                                                    item.description,
+                                                    style: const TextStyle(
+                                                        height: 0, fontSize: 10),
+                                                  ),
+                                                ),
+                                              ))
+                                        ],
+                                      ),
+                                    )),
                                 // Adding Image for card.
                                 ClipRRect(
                                   borderRadius: const BorderRadius.all(
@@ -584,34 +600,34 @@ class LocationsPageState extends State<LocationsPage> {
               ),
               positionsMeldung.isNotEmpty
                   ? Container(
-                      color: Colors.grey[200],
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      child: Row(
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(
-                                left: 0, right: 5, top: 0, bottom: 10),
-                            child: Icon(
-                                color: Colors.blue,
-                                size: 30,
-                                Icons.info_outlined),
-                          ),
-                          Expanded(
-                            child: Text(
-                              positionsMeldung,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                height: 0,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ],
+                color: Colors.grey[200],
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 5),
+                child: Row(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(
+                          left: 0, right: 5, top: 0, bottom: 10),
+                      child: Icon(
+                          color: Colors.blue,
+                          size: 30,
+                          Icons.info_outlined),
+                    ),
+                    Expanded(
+                      child: Text(
+                        positionsMeldung,
+                        textAlign: TextAlign.start,
+                        style: const TextStyle(
+                          height: 0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                          fontSize: 16,
+                        ),
                       ),
-                    )
+                    ),
+                  ],
+                ),
+              )
                   : Container(),
             ],
           ),
@@ -636,11 +652,11 @@ class LocationsPageState extends State<LocationsPage> {
               borderRadius: BorderRadius.circular(10.0),
             ),
             margin:
-                const EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 20),
+            const EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 20),
             elevation: 3,
             child: Padding(
               padding:
-                  const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 0),
+              const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -648,7 +664,7 @@ class LocationsPageState extends State<LocationsPage> {
                   const Padding(
                     padding: EdgeInsets.only(bottom: 2),
                     child: Text(
-                      "RESULTS",
+                      "ERGEBNISSE",
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
                         color: Colors.black,
@@ -658,117 +674,117 @@ class LocationsPageState extends State<LocationsPage> {
                   ),
                   _orteAnzeigenInListe.isEmpty
                       ? const Padding(
-                          padding: EdgeInsets.only(bottom: 5),
-                          child: Text("Nichts gefunden!"),
-                        )
+                    padding: EdgeInsets.only(bottom: 5),
+                    child: Text("Nichts gefunden!"),
+                  )
                       : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _orteAnzeigenInListe.length,
-                          itemBuilder: (context, index) {
-                            return GestureDetector(
-                              onTap: () {
-                                print(
-                                    "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _orteAnzeigenInListe.length,
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () {
+                            print(
+                                "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
 
-                                setState(() {
-                                  if (isLocationavailable()) {
-                                    _currentSelectedIndex = index + 1;
-                                  } else {
-                                    _currentSelectedIndex = index;
-                                  }
+                            setState(() {
+                              if (isLocationavailable()) {
+                                _currentSelectedIndex = index + 1;
+                              } else {
+                                _currentSelectedIndex = index;
+                              }
 
-                                  mapLoaded = false;
-                                  karteOhneGesuchteOrte = false;
-                                  updatePageviewsSelectedPage = true;
-                                });
-                              },
-                              child: Container(
-                                  //color: Colors.blue,
-                                  margin:
-                                      const EdgeInsets.only(top: 5, bottom: 5),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        //color: Colors.blue,
-                                        margin: const EdgeInsets.only(
-                                            left: 0,
-                                            right: 10,
-                                            top: 0,
-                                            bottom: 0),
-                                        child: Container(
-                                          padding: const EdgeInsets.only(
-                                              left: 10,
-                                              right: 10,
-                                              top: 10,
-                                              bottom: 10),
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            color: Colors.red,
-                                          ),
-                                          child: Text(
-                                            isLocationavailable()
-                                                ? "${roundDouble(_orteAnzeigenInListe[index].entfernung, 2)} km"
-                                                : "? km",
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                              fontSize: 13,
-                                            ),
-                                          ),
+                              mapLoaded = false;
+                              karteOhneGesuchteOrte = false;
+                              updatePageviewsSelectedPage = true;
+                            });
+                          },
+                          child: Container(
+                            //color: Colors.blue,
+                              margin:
+                              const EdgeInsets.only(top: 5, bottom: 5),
+                              child: Row(
+                                mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    //color: Colors.blue,
+                                    margin: const EdgeInsets.only(
+                                        left: 0,
+                                        right: 10,
+                                        top: 0,
+                                        bottom: 0),
+                                    child: Container(
+                                      padding: const EdgeInsets.only(
+                                          left: 10,
+                                          right: 10,
+                                          top: 10,
+                                          bottom: 10),
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                        BorderRadius.circular(10),
+                                        color: Color(0xFF7B1A33),
+                                      ),
+                                      child: Text(
+                                        isLocationavailable()
+                                            ? "${roundDouble(_orteAnzeigenInListe[index].entfernung, 2)} km"
+                                            : "? km",
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          fontSize: 13,
                                         ),
                                       ),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              _orteAnzeigenInListe[index].name,
-                                              softWrap: true,
-                                              style: const TextStyle(
-                                                height: 0,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            Text(
-                                              "(${_orteAnzeigenInListe[index].town}, ${_orteAnzeigenInListe[index].state}, ${_orteAnzeigenInListe[index].country})",
-                                              softWrap: true,
-                                              style: const TextStyle(
-                                                height: 0,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.grey,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              height: 5,
-                                            ),
-                                            Text(
-                                              _orteAnzeigenInListe[index]
-                                                  .adress,
-                                              softWrap: true,
-                                              style: const TextStyle(
-                                                height: 0,
-                                                fontWeight: FontWeight.normal,
-                                                color: Colors.grey,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _orteAnzeigenInListe[index].name,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            height: 0,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                            fontSize: 16,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  )),
-                            );
-                          }),
+                                        Text(
+                                          "(${_orteAnzeigenInListe[index].town}, ${_orteAnzeigenInListe[index].state}, ${_orteAnzeigenInListe[index].country})",
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            height: 0,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: 5,
+                                        ),
+                                        Text(
+                                          _orteAnzeigenInListe[index]
+                                              .adress,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            height: 0,
+                                            fontWeight: FontWeight.normal,
+                                            color: Colors.grey,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )),
+                        );
+                      }),
                   getAllResultsContainer(),
                   const SizedBox(height: 10),
                 ],
@@ -826,8 +842,15 @@ class LocationsPageState extends State<LocationsPage> {
 
   Widget getMarkerIcon(double markersize, index) {
     if (isLocationavailable() && index == 0) {
-      return Icon(Icons.person,
-          color: Colors.deepOrangeAccent, size: markersize);
+      return
+        Container(
+          padding: EdgeInsets.all(2),
+          decoration: BoxDecoration(color: Colors.red,shape: BoxShape.circle),
+          child: CircleAvatar(
+            backgroundImage: AssetImage('lib/images/profilbild.jpg'),
+            radius: markersize,
+          ),
+        );
     } else {
       return Icon(Icons.location_on,
           color: _currentSelectedIndex == index ? Colors.blue : Colors.red,
@@ -1041,13 +1064,13 @@ class LocationsPageState extends State<LocationsPage> {
           child: Container(
             alignment: Alignment.center,
             padding:
-                const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
+            const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: Colors.grey,
             ),
             child: const Text(
-              "All Results",
+              "Alle Ergebnisse",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -1062,20 +1085,39 @@ class LocationsPageState extends State<LocationsPage> {
     }
   }
 
+  Future<void> getPositionAndAdress() async {
+    await _getCurrentPosition();
+    await _getAddressFromLatLng(_currentPosition!);
+  }
+
   Future<void> _getCurrentPosition() async {
     final hasPermission = await _handleLocationPermission();
     print("permission fertig!");
     if (!hasPermission) return;
     await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high,
-            forceAndroidLocationManager: true,
-            timeLimit: const Duration(seconds: 8))
+        desiredAccuracy: LocationAccuracy.high,
+        forceAndroidLocationManager: true,
+        timeLimit: const Duration(seconds: 8))
         .then((Position position) {
       _currentPosition = position;
+      _getAddressFromLatLng(_currentPosition!);
+
       print("Positionsermittlung fertig");
     }).catchError((e) {
       print("Zeitüberschreitung bei der Positionsbestimmung!");
       positionsMeldung = 'Ihr Standort konnte nicht bestimmt werden...!';
+    });
+  }
+
+  Future<void> _getAddressFromLatLng(Position position) async {
+    await placemarkFromCoordinates(
+        _currentPosition!.latitude, _currentPosition!.longitude)
+        .then((List<Placemark> placemarks) {
+      Placemark place = placemarks[0];
+      _currentPlace = place;
+      print("Adressenermittlung fertig");
+    }).catchError((e) {
+      print("Fehler bei der Adressenbestimmung!");
     });
   }
 
@@ -1086,7 +1128,7 @@ class LocationsPageState extends State<LocationsPage> {
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       positionsMeldung =
-          'Location services are disabled. Please enable the services';
+      'Der Standort ist deaktiviert... Bitte Aktivieren sie die Dienste!';
       print("Meldung: $positionsMeldung");
 
       return false;
@@ -1096,14 +1138,14 @@ class LocationsPageState extends State<LocationsPage> {
       permission = await Geolocator.requestPermission()
           .onError((error, stackTrace) => LocationPermission.unableToDetermine);
       if (permission == LocationPermission.denied) {
-        positionsMeldung = 'Location permissions are denied';
+        positionsMeldung = 'Standortberechtigungen wurden verweigert!';
         print("Meldung: $positionsMeldung");
         return false;
       }
     }
     if (permission == LocationPermission.deniedForever) {
       positionsMeldung =
-          'Location permissions are permanently denied, we cannot request permissions.';
+      'Standortberechtigungen wurden dauerhaft verweigert, es kann nicht nach Berechtigungen gefragt werden.';
       print("Meldung: $positionsMeldung");
 
       return false;
@@ -1287,3 +1329,4 @@ class _LocationDetails {
   final double longitude;
   final double entfernung;
 }
+
