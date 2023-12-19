@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -152,6 +153,21 @@ class LocationsPageState extends State<LocationsPage> {
       enableDoubleTapZooming: true,
       enableMouseWheelZooming: true,
     );
+
+    // StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
+    //   //desiredAccuracy: LocationAccuracy.high,
+    // ).listen((position) {
+    //   // print(position.toString());
+    // });
+
+    // final LocationSettings locationSettings =
+    //  LocationSettings(accuracy: LocationAccuracy.best, distanceFilter: 0);
+    //
+    // StreamSubscription<ServiceStatus> serviceStatusStream =
+    // Geolocator.getServiceStatusStream().listen((ServiceStatus status) {
+    //   print(status);
+    // });
+
   }
 
   @override
@@ -548,7 +564,7 @@ class LocationsPageState extends State<LocationsPage> {
                                               style: const TextStyle(
                                                   height: 0,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Colors.grey,
+                                                  color: Colors.white,
                                                   fontSize: 10),
                                               textAlign: TextAlign.start),
                                           const SizedBox(height: 3),
@@ -557,7 +573,7 @@ class LocationsPageState extends State<LocationsPage> {
                                               style: const TextStyle(
                                                   height: 0,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Colors.grey,
+                                                  color: Colors.white,
                                                   fontSize: 10),
                                               textAlign: TextAlign.start),
                                           const SizedBox(height: 3),
@@ -1088,6 +1104,14 @@ class LocationsPageState extends State<LocationsPage> {
   Future<void> getPositionAndAdress() async {
     await _getCurrentPosition();
     await _getAddressFromLatLng(_currentPosition!);
+
+    // Geolocator.getPositionStream(
+    //
+    //
+    //
+    //
+    // );
+
   }
 
   Future<void> _getCurrentPosition() async {
@@ -1101,6 +1125,24 @@ class LocationsPageState extends State<LocationsPage> {
         .then((Position position) {
       _currentPosition = position;
       _getAddressFromLatLng(_currentPosition!);
+
+      LocationSettings locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.high, //accuracy of the location data
+        distanceFilter: 100, //minimum distance (measured in meters) a
+        //device must move horizontally before an update event is generated;
+      );
+
+      StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
+          locationSettings: locationSettings).listen((Position position) {
+        print(position.longitude); //Output: 80.24599079
+        print(position.latitude); //Output: 29.6593457
+
+        //
+        //
+        // setState(() {
+        //   //refresh UI on update
+        // });
+      });
 
       print("Positionsermittlung fertig");
     }).catchError((e) {
@@ -1195,12 +1237,9 @@ class LocationsPageState extends State<LocationsPage> {
     double lat2 = l.latitude;
     double lon2 = l.longitude;
 
-    double dx = 71.5 * (lon1 - lon2);
-    double dy = 111.3 * (lat1 - lat2);
+    double distance = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
 
-    double distance = sqrt(dx * dx + dy * dy);
-
-    return distance;
+    return distance/1000;
   }
 
   double berechneEntfernung(int index) {
@@ -1210,12 +1249,9 @@ class LocationsPageState extends State<LocationsPage> {
     double lat2 = _orte[index].latitude;
     double lon2 = _orte[index].longitude;
 
-    double dx = 71.5 * (lon1 - lon2);
-    double dy = 111.3 * (lat1 - lat2);
+    double distance = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
 
-    double distance = sqrt(dx * dx + dy * dy);
-
-    return distance;
+    return distance/1000;
   }
 
   double roundDouble(double value, int places) {

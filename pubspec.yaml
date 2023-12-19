@@ -40,7 +40,7 @@ dependencies:
 
   flutter_osm_plugin: ^0.34.0
   syncfusion_flutter_maps: ^20.1.47
-  geolocator: ^8.2.0
+  geolocator: ^10.1.0
   geocoding: ^2.0.4
 flutter_svg: ^ 2.0.9
 
