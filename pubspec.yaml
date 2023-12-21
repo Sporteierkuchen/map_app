@@ -42,7 +42,7 @@ dependencies:
   syncfusion_flutter_maps: ^20.1.47
   geolocator: ^10.1.0
   geocoding: ^2.0.4
-flutter_svg: ^ 2.0.9
+  image_picker: ^1.0.5
 
 dev_dependencies:
   flutter_test:
