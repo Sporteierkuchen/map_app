@@ -7,6 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
+import '../util/FlavorSettings.dart';
+
 class LocationsPage extends StatefulWidget {
   const LocationsPage({super.key});
   @override
@@ -153,21 +155,6 @@ class LocationsPageState extends State<LocationsPage> {
       enableDoubleTapZooming: true,
       enableMouseWheelZooming: true,
     );
-
-    // StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
-    //   //desiredAccuracy: LocationAccuracy.high,
-    // ).listen((position) {
-    //   // print(position.toString());
-    // });
-
-    // final LocationSettings locationSettings =
-    //  LocationSettings(accuracy: LocationAccuracy.best, distanceFilter: 0);
-    //
-    // StreamSubscription<ServiceStatus> serviceStatusStream =
-    // Geolocator.getServiceStatusStream().listen((ServiceStatus status) {
-    //   print(status);
-    // });
-
   }
 
   @override
@@ -280,21 +267,21 @@ class LocationsPageState extends State<LocationsPage> {
           : MediaQuery.of(context).size.height * 0.19;
 
       return SafeArea(
-        child: SingleChildScrollView(
+        child:
+        SingleChildScrollView(
           child: Column(
             // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               (MediaQuery.of(context).orientation == Orientation.portrait)
                   ? Column(
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(
                         top: 25, left: 18, right: 18, bottom: 5),
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        Text(
-                          "Standorte",
+                        Text(FlavorSettings.getFlavorSettings().style!.getStandorte(),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
@@ -343,8 +330,8 @@ class LocationsPageState extends State<LocationsPage> {
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          "Standorte",
+                        Text(
+                          FlavorSettings.getFlavorSettings().style!.getStandorte(),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
@@ -384,7 +371,7 @@ class LocationsPageState extends State<LocationsPage> {
                   size: 100,
                 ),
               ),
-              Text('Ihr Standort wird ermittelt...',
+              Text(FlavorSettings.getFlavorSettings().style!.getStandortMeldung5(),
                   softWrap: true,
                   style: const TextStyle(
                       height: 0, fontWeight: FontWeight.bold, fontSize: 18),
@@ -532,7 +519,9 @@ class LocationsPageState extends State<LocationsPage> {
                             child: Container(
                               padding: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
-                                color: Color(0xFFCAB69E),
+                                color: Theme.of(context).brightness == Brightness.light
+                                    ? const Color.fromRGBO(255, 255, 255, 1)
+                                    : const Color.fromRGBO(66, 66, 66, 1),
                                 border: Border.all(
                                   color: const Color.fromRGBO(153, 153, 153, 1),
                                   width: 0.5,
@@ -561,19 +550,19 @@ class LocationsPageState extends State<LocationsPage> {
                                               "(${item.town}, ${item.state}, ${item.country})",
                                               // maxLines: 1,
                                               softWrap: true,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                   height: 0,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
+                                                  color: Colors.grey[800],
                                                   fontSize: 10),
                                               textAlign: TextAlign.start),
                                           const SizedBox(height: 3),
                                           Text(item.adress,
                                               softWrap: true,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                   height: 0,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
+                                                  color: Colors.grey[600],
                                                   fontSize: 10),
                                               textAlign: TextAlign.start),
                                           const SizedBox(height: 3),
@@ -677,10 +666,10 @@ class LocationsPageState extends State<LocationsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   getPositionsmeldung(),
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(bottom: 2),
                     child: Text(
-                      "ERGEBNISSE",
+                      FlavorSettings.getFlavorSettings().style!.getErgebnisse(),
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
                         color: Colors.black,
@@ -689,9 +678,9 @@ class LocationsPageState extends State<LocationsPage> {
                     ),
                   ),
                   _orteAnzeigenInListe.isEmpty
-                      ? const Padding(
+                      ? Padding(
                     padding: EdgeInsets.only(bottom: 5),
-                    child: Text("Nichts gefunden!"),
+                    child: Text(FlavorSettings.getFlavorSettings().style!.getNichtsGefunden()),
                   )
                       : ListView.builder(
                       shrinkWrap: true,
@@ -1001,7 +990,7 @@ class LocationsPageState extends State<LocationsPage> {
                 color: Colors.black,
                 size: 20,
               )),
-          hintText: 'Suche...',
+          hintText: FlavorSettings.getFlavorSettings().style!.getSuche(),
         ),
       ),
     );
@@ -1085,8 +1074,8 @@ class LocationsPageState extends State<LocationsPage> {
               borderRadius: BorderRadius.circular(10),
               color: Colors.grey,
             ),
-            child: const Text(
-              "Alle Ergebnisse",
+            child: Text(
+              FlavorSettings.getFlavorSettings().style!.getAlleErgebnisse(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -1104,14 +1093,6 @@ class LocationsPageState extends State<LocationsPage> {
   Future<void> getPositionAndAdress() async {
     await _getCurrentPosition();
     await _getAddressFromLatLng(_currentPosition!);
-
-    // Geolocator.getPositionStream(
-    //
-    //
-    //
-    //
-    // );
-
   }
 
   Future<void> _getCurrentPosition() async {
@@ -1126,28 +1107,28 @@ class LocationsPageState extends State<LocationsPage> {
       _currentPosition = position;
       _getAddressFromLatLng(_currentPosition!);
 
-      LocationSettings locationSettings = LocationSettings(
-        accuracy: LocationAccuracy.high, //accuracy of the location data
-        distanceFilter: 100, //minimum distance (measured in meters) a
-        //device must move horizontally before an update event is generated;
-      );
-
-      StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
-          locationSettings: locationSettings).listen((Position position) {
-        print(position.longitude); //Output: 80.24599079
-        print(position.latitude); //Output: 29.6593457
-
-        //
-        //
-        // setState(() {
-        //   //refresh UI on update
-        // });
-      });
+      // LocationSettings locationSettings = LocationSettings(
+      //   accuracy: LocationAccuracy.high, //accuracy of the location data
+      //   distanceFilter: 100, //minimum distance (measured in meters) a
+      //   //device must move horizontally before an update event is generated;
+      // );
+      //
+      // StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
+      //     locationSettings: locationSettings).listen((Position position) {
+      //   print(position.longitude); //Output: 80.24599079
+      //   print(position.latitude); //Output: 29.6593457
+      //
+      //
+      //
+      //   setState(() {
+      //     //refresh UI on update
+      //   });
+      // });
 
       print("Positionsermittlung fertig");
     }).catchError((e) {
       print("Zeitüberschreitung bei der Positionsbestimmung!");
-      positionsMeldung = 'Ihr Standort konnte nicht bestimmt werden...!';
+      positionsMeldung = FlavorSettings.getFlavorSettings().style!.getStandortMeldung1();
     });
   }
 
@@ -1170,7 +1151,7 @@ class LocationsPageState extends State<LocationsPage> {
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       positionsMeldung =
-      'Der Standort ist deaktiviert... Bitte Aktivieren sie die Dienste!';
+          FlavorSettings.getFlavorSettings().style!.getStandortMeldung2();
       print("Meldung: $positionsMeldung");
 
       return false;
@@ -1180,14 +1161,14 @@ class LocationsPageState extends State<LocationsPage> {
       permission = await Geolocator.requestPermission()
           .onError((error, stackTrace) => LocationPermission.unableToDetermine);
       if (permission == LocationPermission.denied) {
-        positionsMeldung = 'Standortberechtigungen wurden verweigert!';
+        positionsMeldung = FlavorSettings.getFlavorSettings().style!.getStandortMeldung3();
         print("Meldung: $positionsMeldung");
         return false;
       }
     }
     if (permission == LocationPermission.deniedForever) {
       positionsMeldung =
-      'Standortberechtigungen wurden dauerhaft verweigert, es kann nicht nach Berechtigungen gefragt werden.';
+          FlavorSettings.getFlavorSettings().style!.getStandortMeldung4();
       print("Meldung: $positionsMeldung");
 
       return false;
@@ -1366,3 +1347,52 @@ class _LocationDetails {
   final double entfernung;
 }
 
+// @override
+// String getStandortMeldung1() {
+//   return "Ihr Standort konnte nicht bestimmt werden...!";
+// }
+//
+// @override
+// String getStandortMeldung2() {
+//   return 'Der Standort ist deaktiviert... Bitte Aktivieren sie die Dienste!';
+// }
+//
+// @override
+// String getStandortMeldung3() {
+//   return 'Standortberechtigungen wurden verweigert!';
+// }
+//
+// @override
+// String getStandortMeldung4() {
+//   return 'Standortberechtigungen wurden dauerhaft verweigert, es kann nicht nach Berechtigungen gefragt werden.';
+// }
+//
+// @override
+// String getAlleErgebnisse() {
+//   return "Alle Ergebnisse";
+// }
+//
+// @override
+// String getSuche() {
+//   return 'Suche...';
+// }
+//
+// @override
+// String getNichtsGefunden() {
+//   return "Nichts gefunden!";
+// }
+//
+// @override
+// String getErgebnisse() {
+//   return "ERGEBNISSE";
+// }
+//
+// @override
+// String getStandortMeldung5() {
+//   return 'Ihr Standort wird ermittelt...';
+// }
+//
+// @override
+// String getStandorte() {
+//   return "Standorte";
+// }
