@@ -46,6 +46,15 @@ class LocationsPageState extends State<LocationsPage> {
   bool updatePageviewsSelectedPage = false;
   late double _cardHeight;
 
+  LocationSettings locationSettings = const LocationSettings(
+    accuracy: LocationAccuracy.high, //accuracy of the location data
+    distanceFilter: 5,
+   // timeLimit: Duration(seconds: 10)//minimum distance (measured in meters) a
+    //device must move horizontally before an update event is generated;
+  );
+
+  late StreamSubscription<Position> positionStream;
+
   @override
   void initState() {
     super.initState();
@@ -56,7 +65,7 @@ class LocationsPageState extends State<LocationsPage> {
       // Update your UI with the desired changes.
     }));
 
-    _orte.add(const _LocationDetails(
+    _orte.add(_LocationDetails(
       continent: 'Europa',
       country: 'Deutschland',
       state: 'Sachsen',
@@ -70,7 +79,7 @@ class LocationsPageState extends State<LocationsPage> {
       entfernung: 0,
     ));
 
-    _orte.add(const _LocationDetails(
+    _orte.add(_LocationDetails(
       continent: 'Europa',
       country: 'Deutschland',
       state: 'Sachsen',
@@ -85,7 +94,7 @@ class LocationsPageState extends State<LocationsPage> {
       entfernung: 0,
     ));
 
-    _orte.add(const _LocationDetails(
+    _orte.add(_LocationDetails(
       continent: 'Europa',
       country: 'Deutschland',
       state: 'Sachsen',
@@ -99,7 +108,7 @@ class LocationsPageState extends State<LocationsPage> {
       entfernung: 0,
     ));
 
-    _orte.add(const _LocationDetails(
+    _orte.add(_LocationDetails(
       continent: 'Europa',
       country: 'Deutschland',
       state: 'Thüringen',
@@ -113,7 +122,7 @@ class LocationsPageState extends State<LocationsPage> {
       entfernung: 0,
     ));
 
-    _orte.add(const _LocationDetails(
+    _orte.add(_LocationDetails(
       continent: 'Europa',
       country: 'Deutschland',
       state: 'Sachsen',
@@ -127,19 +136,34 @@ class LocationsPageState extends State<LocationsPage> {
       entfernung: 0,
     ));
 
-    // _orte.add(const _LocationDetails(
-    //   continent: 'Europa',
-    //   country: 'Deutschland',
-    //   state: 'Sachsen',
-    //   town: 'test',
-    //   adress: 'Poststraße 12, 07973 Greiz',
-    //   name: 'test',
-    //   description: 'gleich haben wir den salat',
-    //   imagePath: 'lib/images/greizbahnhof.jpg',
-    //   latitude: 51.33690497220942,
-    //   longitude: 12.341076149596486 ,
-    //   entfernung: 0,
-    // ));
+    _orte.add(_LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Sachsen',
+      town: 'test',
+      adress: 'test',
+      name: 'test',
+      description: 'gleich haben wir den salat',
+      imagePath: 'lib/images/egonK.png',
+      latitude: 50.79572371594455,
+      longitude: 12.300325301623266,
+      entfernung: 0,
+    ));
+
+    _orte.add(_LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Sachsen',
+      town: 'test2',
+      adress: 'tes2',
+      name: 'test2',
+      description: 'gleich haben wir den salat',
+      imagePath: 'lib/images/egonK.png',
+      latitude: 50.79563349185355,
+      longitude: 12.300211758489866,
+      entfernung: 0,
+    ));
+
 
     _currentSelectedIndex = 0;
     _canUpdateFocalLatLng = true;
@@ -153,6 +177,89 @@ class LocationsPageState extends State<LocationsPage> {
       enableDoubleTapZooming: true,
       enableMouseWheelZooming: true,
     );
+
+    positionStream = Geolocator.getPositionStream(
+        locationSettings: locationSettings).listen((Position position) {
+
+      print("Positionsänderung!");
+
+      if(position!=null){
+
+        setState(() {
+
+          // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          //   content: Text("Position aktualisiert!"),
+          // ));
+
+          try {
+
+            _currentPosition=position;
+
+            _getAddressFromLatLng(_currentPosition!);
+
+            _orteAnzeigenAufKarte[0]=_LocationDetails(
+              continent: "",
+              country: _currentPlace?.country ?? "",
+              state: _currentPlace?.administrativeArea ?? "",
+              town: _currentPlace?.locality ?? "",
+              adress:
+              "${_currentPlace?.street ?? ""}, ${_currentPlace?.postalCode ?? ""} ${_currentPlace?.locality ?? ""}",
+              name: "Username",
+              description: "Hier bist du!",
+              imagePath: 'lib/images/profilbild.jpg',
+              latitude: _currentPosition!.latitude,
+              longitude: _currentPosition!.longitude,
+              entfernung: 0,
+            );
+            _mapController.updateMarkers([0]);
+
+
+            if (karteOhneGesuchteOrte){
+
+              _orteAnzeigenAufKarte.removeAt(1);
+              _orteAnzeigenAufKarte.add(getkleinsteEntfernung());
+              _mapController.updateMarkers([1]);
+
+              List<_LocationDetails> list = _orteAnzeigenAufKarte;
+              list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+              _LocationDetails median = getmedianEntfernung(list);
+              print("Median: ${median.name} Entfernung: ${median.entfernung}");
+
+              getZoomLevel(median.entfernung);
+              _zoomPanBehavior.zoomLevel = zoomlevel;
+            }
+            else{
+
+              List<_LocationDetails> list = _orteAnzeigenAufKarte;
+              for (_LocationDetails ort in list) {
+                ort.entfernung=getEntfernung(ort);
+              }
+
+              list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+              _LocationDetails median = getmedianEntfernung(list);
+              print("Median: ${median.name} Entfernung: ${median.entfernung}");
+
+              getZoomLevel(median.entfernung);
+              _zoomPanBehavior.zoomLevel = zoomlevel;
+
+            }
+
+            _zoomPanBehavior.focalLatLng = MapLatLng(
+                _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
+                _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
+
+          } catch (e) {}
+
+        });
+
+      }
+      else{
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Fehler Positionsaktualisierung!"),
+        ));
+      }
+    });
+
   }
 
   @override
@@ -161,6 +268,7 @@ class LocationsPageState extends State<LocationsPage> {
     _pageViewController.dispose();
     _mapController.dispose();
     _orte.clear();
+    positionStream.cancel();
     super.dispose();
   }
 
@@ -308,7 +416,7 @@ class LocationsPageState extends State<LocationsPage> {
                   ),
                   Padding(
                     padding:
-                    EdgeInsets.only(left: 18, right: 18, bottom: 0),
+                    const EdgeInsets.only(left: 18, right: 18, bottom: 0),
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -544,8 +652,7 @@ class LocationsPageState extends State<LocationsPage> {
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12),
                                               textAlign: TextAlign.start),
-                                          Text(
-                                              "(${item.town}, ${item.state}, ${item.country})",
+                                          Text((_currentPlace==null && index==0) ? "" : "(${item.town}, ${item.state}, ${item.country})",
                                               // maxLines: 1,
                                               softWrap: true,
                                               style: TextStyle(
@@ -684,6 +791,7 @@ class LocationsPageState extends State<LocationsPage> {
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _orteAnzeigenInListe.length,
                       itemBuilder: (context, index) {
+
                         return GestureDetector(
                           onTap: () {
                             print(
@@ -999,7 +1107,7 @@ class LocationsPageState extends State<LocationsPage> {
     if (value.trim().isNotEmpty) {
       _orteGefunden.clear();
 
-      for (_LocationDetails d in this._orte) {
+      for (_LocationDetails d in _orte) {
         if (d.continent.toLowerCase().contains(value.toLowerCase().trim()) ||
             d.country.toLowerCase().contains(value.toLowerCase().trim()) ||
             d.state.toLowerCase().contains(value.toLowerCase().trim()) ||
@@ -1008,24 +1116,25 @@ class LocationsPageState extends State<LocationsPage> {
             d.name.toLowerCase().contains(value.toLowerCase().trim())) {
           print("Beschreibung " + d.name);
 
-          _orteGefunden.add(_LocationDetails(
-              continent: d.continent,
-              country: d.country,
-              state: d.state,
-              town: d.town,
-              adress: d.adress,
-              name: d.name,
-              description: d.description,
-              imagePath: d.imagePath,
-              latitude: d.latitude,
-              longitude: d.longitude,
-              entfernung: getEntfernung(d)));
+          _orteGefunden.add(d);
+          // _orteGefunden.add(_LocationDetails(
+          //     continent: d.continent,
+          //     country: d.country,
+          //     state: d.state,
+          //     town: d.town,
+          //     adress: d.adress,
+          //     name: d.name,
+          //     description: d.description,
+          //     imagePath: d.imagePath,
+          //     latitude: d.latitude,
+          //     longitude: d.longitude,
+          //     entfernung: getEntfernung(d)));
         }
       }
 
-      if (isLocationavailable()) {
-        _orteGefunden.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-      }
+      // if (isLocationavailable()) {
+      //   _orteGefunden.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+      // }
     }
 
     setState(() {
@@ -1038,6 +1147,14 @@ class LocationsPageState extends State<LocationsPage> {
 
   void getItemsListe() {
     _orteAnzeigenInListe.clear();
+
+    if(isLocationavailable()){
+      for (_LocationDetails ort in _orteGefunden) {
+        ort.entfernung=getEntfernung(ort);
+      }
+      _orteGefunden.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+    }
+
     if ((this.showAllResults) ||
         (this.showAllResults == false &&
             _orteGefunden.length <= maxSearchList)) {
@@ -1049,6 +1166,7 @@ class LocationsPageState extends State<LocationsPage> {
         _orteAnzeigenInListe.add(_orteGefunden.elementAt(i));
       }
     }
+
   }
 
   Widget getAllResultsContainer() {
@@ -1102,24 +1220,6 @@ class LocationsPageState extends State<LocationsPage> {
         .then((Position position) {
       _currentPosition = position;
       _getAddressFromLatLng(_currentPosition!);
-
-      // LocationSettings locationSettings = LocationSettings(
-      //   accuracy: LocationAccuracy.high, //accuracy of the location data
-      //   distanceFilter: 100, //minimum distance (measured in meters) a
-      //   //device must move horizontally before an update event is generated;
-      // );
-      //
-      // StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
-      //     locationSettings: locationSettings).listen((Position position) {
-      //   print(position.longitude); //Output: 80.24599079
-      //   print(position.latitude); //Output: 29.6593457
-      //
-      //
-      //
-      //   setState(() {
-      //     //refresh UI on update
-      //   });
-      // });
 
       print("Positionsermittlung fertig");
     }).catchError((e) {
@@ -1258,7 +1358,7 @@ class LocationsPageState extends State<LocationsPage> {
 
   _LocationDetails getkleinsteEntfernung() {
     double kleinsteentfernung = 0;
-    _LocationDetails d = const _LocationDetails(
+    _LocationDetails d = _LocationDetails(
       continent: "",
       country: "",
       state: "",
@@ -1313,7 +1413,7 @@ class LocationsPageState extends State<LocationsPage> {
 }
 
 class _LocationDetails {
-  const _LocationDetails({
+   _LocationDetails({
     required this.continent,
     required this.country,
     required this.state,
@@ -1338,6 +1438,6 @@ class _LocationDetails {
   final String imagePath;
   final double latitude;
   final double longitude;
-  final double entfernung;
+  double entfernung;
 }
 
