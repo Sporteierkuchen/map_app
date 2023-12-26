@@ -227,27 +227,27 @@ class LocationsPageState extends State<LocationsPage> {
 
               getZoomLevel(median.entfernung);
               _zoomPanBehavior.zoomLevel = zoomlevel;
+
+              _zoomPanBehavior.focalLatLng = MapLatLng(
+                  _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
+                  _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
+
             }
             else{
 
-              List<_LocationDetails> list = _orteAnzeigenAufKarte;
-              for (_LocationDetails ort in list) {
-                ort.entfernung=getEntfernung(ort);
-              }
-
-              list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-              _LocationDetails median = getmedianEntfernung(list);
-              print("Median: ${median.name} Entfernung: ${median.entfernung}");
-
-              getZoomLevel(median.entfernung);
-              _zoomPanBehavior.zoomLevel = zoomlevel;
+              // List<_LocationDetails> list = _orteAnzeigenAufKarte;
+              // for (_LocationDetails ort in list) {
+              //   ort.entfernung=getEntfernung(ort);
+              // }
+              //
+              // list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+              // _LocationDetails median = getmedianEntfernung(list);
+              // print("Median: ${median.name} Entfernung: ${median.entfernung}");
+              //
+              // getZoomLevel(median.entfernung);
+              // _zoomPanBehavior.zoomLevel = zoomlevel;
 
             }
-
-            _zoomPanBehavior.focalLatLng = MapLatLng(
-                _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
-                _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
-
           } catch (e) {}
 
         });
