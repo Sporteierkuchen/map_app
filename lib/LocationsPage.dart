@@ -739,6 +739,40 @@ class LocationsPageState extends State<LocationsPage> {
                 ),
               )
                   : Container(),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+
+                  _currentSelectedIndex!=0 && isLocationavailable() ?
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      padding: const EdgeInsets.only(
+                          left: 10,
+                          right: 10,
+                          top: 10,
+                          bottom: 10),
+                      decoration: BoxDecoration(
+                        borderRadius:
+                        BorderRadius.circular(10),
+                        color: Colors.grey[400],
+                      ),
+                      child: Text("${roundDouble(getEntfernung(_orteAnzeigenAufKarte.elementAt(_currentSelectedIndex)),2)} km",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  )
+                  :
+                  Container()
+                ],
+              ),
+
             ],
           ),
         ),
