@@ -7,7 +7,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
-import '../util/FlavorSettings.dart';
 
 class LocationsPage extends StatefulWidget {
   const LocationsPage({super.key});
@@ -363,15 +362,13 @@ class LocationsPageState extends State<LocationsPage> {
                           Orientation.portrait)
                           ? Column(
                         children: [
-                          Padding(
+                          const Padding(
                             padding: EdgeInsets.only(
                                 top: 25, left: 18, right: 18, bottom: 5),
                             child: Row(
                               children: [
                                 Text(
-                                  FlavorSettings.getFlavorSettings()
-                                      .style!
-                                      .getStandorte(),
+                                  "Standorte",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black,
@@ -421,10 +418,8 @@ class LocationsPageState extends State<LocationsPage> {
                               mainAxisAlignment:
                               MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  FlavorSettings.getFlavorSettings()
-                                      .style!
-                                      .getStandorte(),
+                                const Text(
+                                  "Standorte",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black,
@@ -843,10 +838,7 @@ class LocationsPageState extends State<LocationsPage> {
                   size: 100,
                 ),
               ),
-              Text(
-                  FlavorSettings.getFlavorSettings()
-                      .style!
-                      .getStandortMeldung5(),
+              const Text("Standort nicht verfügbar!",
                   softWrap: true,
                   style: TextStyle(
                       height: 0, fontWeight: FontWeight.bold, fontSize: 18),
@@ -889,12 +881,10 @@ class LocationsPageState extends State<LocationsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     getPositionsmeldung(),
-                    Padding(
+                    const Padding(
                       padding: EdgeInsets.only(bottom: 2),
                       child: Text(
-                        FlavorSettings.getFlavorSettings()
-                            .style!
-                            .getErgebnisse(),
+                       "Ergebnisse",
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           color: Colors.black,
@@ -903,11 +893,9 @@ class LocationsPageState extends State<LocationsPage> {
                       ),
                     ),
                     _orteAnzeigenInListe.isEmpty
-                        ? Padding(
+                        ? const Padding(
                       padding: EdgeInsets.only(bottom: 5),
-                      child: Text(FlavorSettings.getFlavorSettings()
-                          .style!
-                          .getNichtsGefunden()),
+                      child: Text("Nichts gefunden!"),
                     )
                         : ListView.builder(
                         shrinkWrap: true,
@@ -1217,7 +1205,7 @@ class LocationsPageState extends State<LocationsPage> {
                 color: Colors.black,
                 size: 20,
               )),
-          hintText: FlavorSettings.getFlavorSettings().style!.getSuche(),
+          hintText: "Suche...",
         ),
       ),
     );
@@ -1294,8 +1282,8 @@ class LocationsPageState extends State<LocationsPage> {
               borderRadius: BorderRadius.circular(10),
               color: Colors.grey,
             ),
-            child: Text(
-              FlavorSettings.getFlavorSettings().style!.getAlleErgebnisse(),
+            child: const Text(
+              "Alle Ergebnisse",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -1331,7 +1319,7 @@ class LocationsPageState extends State<LocationsPage> {
     }).catchError((e) {
       print("Zeitüberschreitung bei der Positionsbestimmung!");
       positionsMeldung =
-          FlavorSettings.getFlavorSettings().style!.getStandortMeldung1();
+      "Standort nicht verfügbar!";
     });
   }
 
@@ -1354,7 +1342,7 @@ class LocationsPageState extends State<LocationsPage> {
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       positionsMeldung =
-          FlavorSettings.getFlavorSettings().style!.getStandortMeldung2();
+      "Standort nicht verfügbar!";
       print("Meldung: $positionsMeldung");
 
       return false;
@@ -1365,14 +1353,14 @@ class LocationsPageState extends State<LocationsPage> {
           .onError((error, stackTrace) => LocationPermission.unableToDetermine);
       if (permission == LocationPermission.denied) {
         positionsMeldung =
-            FlavorSettings.getFlavorSettings().style!.getStandortMeldung3();
+        "Standort nicht verfügbar!";
         print("Meldung: $positionsMeldung");
         return false;
       }
     }
     if (permission == LocationPermission.deniedForever) {
       positionsMeldung =
-          FlavorSettings.getFlavorSettings().style!.getStandortMeldung4();
+      "Standort nicht verfügbar!";
       print("Meldung: $positionsMeldung");
 
       return false;

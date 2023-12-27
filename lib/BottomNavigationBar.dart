@@ -78,13 +78,15 @@ class _BottomNavBarState extends State<BottomNavBar> {
    BottomNavigationBarItem getStartIcon(bool selected){
      return BottomNavigationBarItem(
        icon: Container(
+         width: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
+         height: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
          child:
 
 
          const Icon(
            Icons.home,
            color: Colors.black,
-           size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
+           //size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
          ),
 
 
@@ -96,12 +98,14 @@ class _BottomNavBarState extends State<BottomNavBar> {
   BottomNavigationBarItem getLocationsIcon(bool selected){
     return BottomNavigationBarItem(
       icon: Container(
+        width: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
+        height: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
           child:
 
           const Icon(
             Icons.map,
             color: Colors.black,
-            size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
+            //size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
           ),
 
 
@@ -113,12 +117,14 @@ class _BottomNavBarState extends State<BottomNavBar> {
   BottomNavigationBarItem getActionsIcon(bool selected){
     return BottomNavigationBarItem(
       icon: Container(
+        width: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
+        height: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
           child:
 
           const Icon(
             Icons.add_call,
             color: Colors.black,
-            size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
+            //size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
           ),
 
       ),
@@ -130,12 +136,14 @@ class _BottomNavBarState extends State<BottomNavBar> {
   BottomNavigationBarItem getProfileIcon(bool selected){
     return BottomNavigationBarItem(
       icon: Container(
+        width: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
+        height: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
           child:
 
           const Icon(
             Icons.person,
             color: Colors.black,
-            size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
+           // size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
           ),
 
       ),

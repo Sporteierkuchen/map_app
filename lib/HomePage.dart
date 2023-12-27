@@ -83,239 +83,250 @@ class HomePageState extends WrapperPageState<HomePage> {
 
     if(alleAnzeigen==false){
       return SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            // crossAxisAlignment:CrossAxisAlignment.start,
+          child:
 
-            children: [
-              Padding(
-                padding: EdgeInsets.all(18.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "test",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 25,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Hallo, Max.',
-                          style: TextStyle(
-                            fontWeight: FontWeight.normal,
-                            color: Colors.grey,
-                            fontSize: 22,
-                          ),
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              "Punkte",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.grey,
-                                fontSize: 22,
-                              ),
-                            ),
-                            Card(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              color: Colors.red,
-                              margin: const EdgeInsets.only(
-                                  left: 15, right: 15, top: 10, bottom: 5),
-                              elevation: 3,
-                              child:  Padding(
-                                padding: EdgeInsets.only(
-                                    left: 15, right: 15, top: 10, bottom: 10),
-                                child: Text(
-                               gesamtpunke.toString() ,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      ],
-                    )
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SizedBox(
-                    height: 300,
-                    child: Container(
-                      color: Colors.green,
-                      child: null,
-                    )),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Transaktionen",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 20,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        print("alle Anzeigen gedrückt!");
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
 
-                        if(this.transaktionenList.isNotEmpty){
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              // crossAxisAlignment:CrossAxisAlignment.start,
 
-                          setState(() {
-
-                            alleAnzeigen=true;
-                          });
-
-                        }
-                      },
-
-                      child: Text(
-                        "Alle anzeigen",
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(18.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "test",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
-                          fontSize: 15,
+                          fontSize: 25,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Hallo, Max.',
+                            style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              color: Colors.grey,
+                              fontSize: 22,
+                            ),
+                          ),
+                          Column(
+                            children: [
+                              Text(
+                                "Punkte",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.grey,
+                                  fontSize: 22,
+                                ),
+                              ),
+                              Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                color: Colors.red,
+                                margin: const EdgeInsets.only(
+                                    left: 15, right: 15, top: 10, bottom: 5),
+                                elevation: 3,
+                                child:  Padding(
+                                  padding: EdgeInsets.only(
+                                      left: 15, right: 15, top: 10, bottom: 10),
+                                  child: Text(
+                                 gesamtpunke.toString() ,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              Column(
-                  children:getTheTransAktionList()
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                      height: 300,
+                      child: Container(
+                        color: Colors.green,
+                        child: null,
+                      )),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Transaktionen",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                          fontSize: 20,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          print("alle Anzeigen gedrückt!");
+
+                          if(this.transaktionenList.isNotEmpty){
+
+                            setState(() {
+
+                              alleAnzeigen=true;
+                            });
+
+                          }
+                        },
+
+                        child: Text(
+                          "Alle anzeigen",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                    children:getTheTransAktionList()
+                ),
+              ],
+            ),
           ));
     }
     else{
 
       return SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            // crossAxisAlignment:CrossAxisAlignment.start,
+          child:
 
-            children: [
-              Padding(
-                padding: EdgeInsets.all(18.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Transaktionen",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 20,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              // crossAxisAlignment:CrossAxisAlignment.start,
 
-                         GestureDetector(
-                           onTap: () {
-
-                             setState(() {
-                               print("zurück gedrückt!");
-                               alleAnzeigen=false;
-                             });
-
-                           },
-
-                           child: Row(
-                             children: [
-
-                               const Padding(
-                                 padding:
-                                 EdgeInsets.only(left: 0, right: 5, top: 0, bottom: 0),
-                                 child: Icon(
-                                     color: Colors.black, size: 25, Icons.arrow_back),
-                               ),
-
-                               Text(
-                                'zurück',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
-                                  fontSize: 15,
-                                ),
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(18.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Transaktionen",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                          fontSize: 20,
                         ),
-                             ],
-                           ),
-                         ),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
 
-                        Column(
-                          children: [
-                            Text(
-                              "Punkte",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.grey,
-                                fontSize: 22,
-                              ),
-                            ),
-                            Card(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              color: Colors.red,
-                              margin: const EdgeInsets.only(
-                                  left: 15, right: 15, top: 10, bottom: 5),
-                              elevation: 3,
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                    left: 15, right: 15, top: 10, bottom: 10),
-                                child: Text(
-                                  gesamtpunke.toString(),
-                                  style: TextStyle(
-                                    color: Colors.white,
+                           GestureDetector(
+                             onTap: () {
+
+                               setState(() {
+                                 print("zurück gedrückt!");
+                                 alleAnzeigen=false;
+                               });
+
+                             },
+
+                             child: Row(
+                               children: [
+
+                                 const Padding(
+                                   padding:
+                                   EdgeInsets.only(left: 0, right: 5, top: 0, bottom: 0),
+                                   child: Icon(
+                                       color: Colors.black, size: 25, Icons.arrow_back),
+                                 ),
+
+                                 Text(
+                                  'zurück',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
                                     fontSize: 15,
+                                  ),
+                          ),
+                               ],
+                             ),
+                           ),
+
+                          Column(
+                            children: [
+                              Text(
+                                "Punkte",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.grey,
+                                  fontSize: 22,
+                                ),
+                              ),
+                              Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                color: Colors.red,
+                                margin: const EdgeInsets.only(
+                                    left: 15, right: 15, top: 10, bottom: 5),
+                                elevation: 3,
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                      left: 15, right: 15, top: 10, bottom: 10),
+                                  child: Text(
+                                    gesamtpunke.toString(),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        )
-                      ],
-                    )
-                  ],
+                            ],
+                          )
+                        ],
+                      )
+                    ],
+                  ),
                 ),
-              ),
 
-              Column(
-                  children:this.transaktionenList
-              ),
+                Column(
+                    children:this.transaktionenList
+                ),
 
-            ],
+              ],
+            ),
           ));
 
     }
