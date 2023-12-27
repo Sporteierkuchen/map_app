@@ -7,6 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
+import '../util/FlavorSettings.dart';
+
 class LocationsPage extends StatefulWidget {
   const LocationsPage({super.key});
   @override
@@ -33,6 +35,7 @@ class LocationsPageState extends State<LocationsPage> {
   bool showAllResults = false;
 
   final fieldText = TextEditingController();
+  final srollcontroller = ScrollController();
 
   late MapTileLayerController _mapController;
   late MapZoomPanBehavior _zoomPanBehavior;
@@ -49,7 +52,7 @@ class LocationsPageState extends State<LocationsPage> {
   LocationSettings locationSettings = const LocationSettings(
     accuracy: LocationAccuracy.high, //accuracy of the location data
     distanceFilter: 5,
-   // timeLimit: Duration(seconds: 10)//minimum distance (measured in meters) a
+    // timeLimit: Duration(seconds: 10)//minimum distance (measured in meters) a
     //device must move horizontally before an update event is generated;
   );
 
@@ -136,35 +139,6 @@ class LocationsPageState extends State<LocationsPage> {
       entfernung: 0,
     ));
 
-    _orte.add(_LocationDetails(
-      continent: 'Europa',
-      country: 'Deutschland',
-      state: 'Sachsen',
-      town: 'test',
-      adress: 'test',
-      name: 'test',
-      description: 'gleich haben wir den salat',
-      imagePath: 'lib/images/egonK.png',
-      latitude: 50.79572371594455,
-      longitude: 12.300325301623266,
-      entfernung: 0,
-    ));
-
-    _orte.add(_LocationDetails(
-      continent: 'Europa',
-      country: 'Deutschland',
-      state: 'Sachsen',
-      town: 'test2',
-      adress: 'tes2',
-      name: 'test2',
-      description: 'gleich haben wir den salat',
-      imagePath: 'lib/images/egonK.png',
-      latitude: 50.79563349185355,
-      longitude: 12.300211758489866,
-      entfernung: 0,
-    ));
-
-
     _currentSelectedIndex = 0;
     _canUpdateFocalLatLng = true;
     _mapController = MapTileLayerController();
@@ -178,88 +152,75 @@ class LocationsPageState extends State<LocationsPage> {
       enableMouseWheelZooming: true,
     );
 
-    positionStream = Geolocator.getPositionStream(
-        locationSettings: locationSettings).listen((Position position) {
+    positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position position) {
+          print("Positionsänderung!");
 
-      print("Positionsänderung!");
+          if (position != null) {
+            setState(() {
+              // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              //   content: Text("Position aktualisiert!"),
+              // ));
 
-      if(position!=null){
+              try {
+                _currentPosition = position;
 
-        setState(() {
+                _getAddressFromLatLng(_currentPosition!);
 
-          // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          //   content: Text("Position aktualisiert!"),
-          // ));
+                _orteAnzeigenAufKarte[0] = _LocationDetails(
+                  continent: "",
+                  country: _currentPlace?.country ?? "",
+                  state: _currentPlace?.administrativeArea ?? "",
+                  town: _currentPlace?.locality ?? "",
+                  adress:
+                  "${_currentPlace?.street ?? ""}, ${_currentPlace?.postalCode ?? ""} ${_currentPlace?.locality ?? ""}",
+                  name: "Username",
+                  description: "Hier bist du!",
+                  imagePath: 'lib/images/profilbild.jpg',
+                  latitude: _currentPosition!.latitude,
+                  longitude: _currentPosition!.longitude,
+                  entfernung: 0,
+                );
+                _mapController.updateMarkers([0]);
 
-          try {
+                if (karteOhneGesuchteOrte) {
+                  _orteAnzeigenAufKarte.removeAt(1);
+                  _orteAnzeigenAufKarte.add(getkleinsteEntfernung());
+                  _mapController.updateMarkers([1]);
 
-            _currentPosition=position;
+                  List<_LocationDetails> list = _orteAnzeigenAufKarte;
+                  list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+                  _LocationDetails median = getmedianEntfernung(list);
+                  print("Median: ${median.name} Entfernung: ${median.entfernung}");
 
-            _getAddressFromLatLng(_currentPosition!);
+                  getZoomLevel(median.entfernung);
+                  _zoomPanBehavior.zoomLevel = zoomlevel;
 
-            _orteAnzeigenAufKarte[0]=_LocationDetails(
-              continent: "",
-              country: _currentPlace?.country ?? "",
-              state: _currentPlace?.administrativeArea ?? "",
-              town: _currentPlace?.locality ?? "",
-              adress:
-              "${_currentPlace?.street ?? ""}, ${_currentPlace?.postalCode ?? ""} ${_currentPlace?.locality ?? ""}",
-              name: "Username",
-              description: "Hier bist du!",
-              imagePath: 'lib/images/profilbild.jpg',
-              latitude: _currentPosition!.latitude,
-              longitude: _currentPosition!.longitude,
-              entfernung: 0,
-            );
-            _mapController.updateMarkers([0]);
-
-
-            if (karteOhneGesuchteOrte){
-
-              _orteAnzeigenAufKarte.removeAt(1);
-              _orteAnzeigenAufKarte.add(getkleinsteEntfernung());
-              _mapController.updateMarkers([1]);
-
-              List<_LocationDetails> list = _orteAnzeigenAufKarte;
-              list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-              _LocationDetails median = getmedianEntfernung(list);
-              print("Median: ${median.name} Entfernung: ${median.entfernung}");
-
-              getZoomLevel(median.entfernung);
-              _zoomPanBehavior.zoomLevel = zoomlevel;
-
-              _zoomPanBehavior.focalLatLng = MapLatLng(
-                  _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
-                  _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
-
-            }
-            else{
-
-              // List<_LocationDetails> list = _orteAnzeigenAufKarte;
-              // for (_LocationDetails ort in list) {
-              //   ort.entfernung=getEntfernung(ort);
-              // }
-              //
-              // list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-              // _LocationDetails median = getmedianEntfernung(list);
-              // print("Median: ${median.name} Entfernung: ${median.entfernung}");
-              //
-              // getZoomLevel(median.entfernung);
-              // _zoomPanBehavior.zoomLevel = zoomlevel;
-
-            }
-          } catch (e) {}
-
+                  _zoomPanBehavior.focalLatLng = MapLatLng(
+                      _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
+                      _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
+                } else {
+                  // List<_LocationDetails> list = _orteAnzeigenAufKarte;
+                  // for (_LocationDetails ort in list) {
+                  //   ort.entfernung=getEntfernung(ort);
+                  // }
+                  //
+                  // list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+                  // _LocationDetails median = getmedianEntfernung(list);
+                  // print("Median: ${median.name} Entfernung: ${median.entfernung}");
+                  //
+                  // getZoomLevel(median.entfernung);
+                  // _zoomPanBehavior.zoomLevel = zoomlevel;
+                }
+              } catch (e) {}
+            });
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text("Fehler Positionsaktualisierung!"),
+            ));
+          }
         });
-
-      }
-      else{
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("Fehler Positionsaktualisierung!"),
-        ));
-      }
-    });
-
   }
 
   @override
@@ -367,97 +328,502 @@ class LocationsPageState extends State<LocationsPage> {
         viewportFraction: 0.8,
       );
 
+      try {
+        if (this.fieldText.value.text.trim().isEmpty ||
+            karteOhneGesuchteOrte == false) {
+          srollcontroller.jumpTo(0.0);
+        }
+      } catch (e) {}
+
       _cardHeight =
       (MediaQuery.of(context).orientation == Orientation.landscape)
           ? MediaQuery.of(context).size.height * 0.27
           : MediaQuery.of(context).size.height * 0.19;
 
-      return SafeArea(
-        child:
-        SingleChildScrollView(
-          child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              (MediaQuery.of(context).orientation == Orientation.portrait)
-                  ? Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(
-                        top: 25, left: 18, right: 18, bottom: 5),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Text("Standorte",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            fontSize: 25,
+      return Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            controller: srollcontroller,
+            child: Stack(
+              alignment: Alignment.topCenter,
+              children: [
+                Container(
+                  height: (MediaQuery.of(context).orientation ==
+                      Orientation.portrait)
+                      ? MediaQuery.of(context).size.height * 0.91 -
+                      MediaQuery.of(context).padding.top-1
+                      : MediaQuery.of(context).size.height * 0.84 -
+                      MediaQuery.of(context).padding.top-1,
+                  //color: Colors.greenAccent,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    // crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      (MediaQuery.of(context).orientation ==
+                          Orientation.portrait)
+                          ? Column(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(
+                                top: 25, left: 18, right: 18, bottom: 5),
+                            child: Row(
+                              children: [
+                                Text(
+                                  FlavorSettings.getFlavorSettings()
+                                      .style!
+                                      .getStandorte(),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 25,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(
-                        top: 0, left: 18, right: 18, bottom: 10),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Text(
-                          'Hallo, Max.',
-                          style: TextStyle(
-                            fontWeight: FontWeight.normal,
-                            color: Colors.grey,
-                            fontSize: 20,
+                          const Padding(
+                            padding: EdgeInsets.only(
+                                top: 0, left: 18, right: 18, bottom: 10),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                Text(
+                                  'Hallo, Max.',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.grey,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                    const EdgeInsets.only(left: 18, right: 18, bottom: 0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        getSuchfeld(),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-                  : Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        top: 15, left: 18, right: 18, bottom: 5),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Standorte",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            fontSize: 25,
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 18, right: 18, bottom: 0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                getSuchfeld(),
+                              ],
+                            ),
                           ),
+                        ],
+                      )
+                          : Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: 15, left: 18, right: 18, bottom: 5),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  FlavorSettings.getFlavorSettings()
+                                      .style!
+                                      .getStandorte(),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 25,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 0, right: 50, bottom: 0),
+                                  child: getSuchfeld(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            SizedBox(
+                              height: (MediaQuery.of(context).orientation ==
+                                  Orientation.landscape)
+                                  ? 5
+                                  : 15,
+                            ),
+                            Expanded(
+                              child: Stack(
+                                alignment: AlignmentDirectional.topCenter,
+                                children: <Widget>[
+                                  Positioned.fill(
+                                    child: Image.asset(
+                                      'lib/images/maps_grid.png',
+                                      repeat: ImageRepeat.repeat,
+                                    ),
+                                  ),
+                                  SfMaps(
+                                    layers: <MapLayer>[
+                                      // getLayer(),
+
+                                      MapTileLayer(
+                                        /// URL to request the tiles from the providers.
+                                        ///
+                                        /// The [urlTemplate] accepts the URL in WMTS format i.e. {z} —
+                                        /// zoom level, {x} and {y} — tile coordinates.
+                                        ///
+                                        /// We will replace the {z}, {x}, {y} internally based on the
+                                        /// current center point and the zoom level.
+
+                                        urlTemplate:
+                                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+
+                                        zoomPanBehavior: _zoomPanBehavior,
+                                        controller: _mapController,
+                                        initialMarkersCount:
+                                        _orteAnzeigenAufKarte.length,
+                                        tooltipSettings:
+                                        const MapTooltipSettings(
+                                          color: Colors.transparent,
+                                        ),
+
+                                        markerBuilder:
+                                            (BuildContext context, int index) {
+                                          final double markerSize =
+                                          _currentSelectedIndex == index
+                                              ? 40
+                                              : 25;
+                                          return MapMarker(
+                                            latitude:
+                                            _orteAnzeigenAufKarte[index]
+                                                .latitude,
+                                            longitude:
+                                            _orteAnzeigenAufKarte[index]
+                                                .longitude,
+                                            alignment: Alignment.bottomCenter,
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                if (_currentSelectedIndex !=
+                                                    index) {
+                                                  print(
+                                                      "auf anderen Marker geklickt");
+                                                  _canUpdateFocalLatLng = false;
+                                                  _tappedMarkerIndex = index;
+                                                  _pageViewController
+                                                      .animateToPage(
+                                                    index,
+                                                    duration: const Duration(
+                                                        milliseconds: 500),
+                                                    curve: Curves.easeInOut,
+                                                  );
+                                                } else {
+                                                  print(
+                                                      "auf ausgewählten Marker geklickt");
+                                                }
+
+                                                _zoomPanBehavior.focalLatLng =
+                                                    MapLatLng(
+                                                        _orteAnzeigenAufKarte[
+                                                        index]
+                                                            .latitude,
+                                                        _orteAnzeigenAufKarte[
+                                                        index]
+                                                            .longitude);
+
+                                                _zoomPanBehavior.zoomLevel =
+                                                    zoomlevel;
+
+                                                if (zoomlevel < 14) {
+                                                  print(
+                                                      "Das Zoomlevel wurde auf 14 gestellt!");
+                                                  _zoomPanBehavior.zoomLevel =
+                                                  14;
+                                                }
+                                              },
+                                              child: AnimatedContainer(
+                                                duration: const Duration(
+                                                    milliseconds: 250),
+                                                height: markerSize,
+                                                width: markerSize,
+                                                child: FittedBox(
+                                                  child: getMarkerIcon(
+                                                      markerSize, index),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: Container(
+                                      color: Colors.transparent,
+                                      height: _cardHeight,
+                                      padding:
+                                      const EdgeInsets.only(bottom: 10),
+
+                                      /// PageView which shows the world wonder details at the bottom.
+                                      child: PageView.builder(
+                                        itemCount: _orteAnzeigenAufKarte.length,
+                                        onPageChanged: _handlePageChange,
+                                        controller: _pageViewController,
+                                        itemBuilder:
+                                            (BuildContext context, int index) {
+                                          final _LocationDetails item =
+                                          _orteAnzeigenAufKarte[index];
+                                          return Transform.scale(
+                                            scale:
+                                            index == _currentSelectedIndex
+                                                ? 1
+                                                : 0.85,
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                borderRadius: const BorderRadius
+                                                    .all(
+                                                    Radius.elliptical(10, 10)),
+                                                onTap: () {
+                                                  if (_currentSelectedIndex !=
+                                                      index) {
+                                                    print(
+                                                        "auf andere Infokarte geklickt!");
+                                                    _pageViewController
+                                                        .animateToPage(
+                                                      index,
+                                                      duration: const Duration(
+                                                          milliseconds: 500),
+                                                      curve: Curves.easeInOut,
+                                                    );
+                                                  } else {
+                                                    print(
+                                                        "auf ausgewählte Infokarte geklickt!");
+                                                  }
+                                                  _zoomPanBehavior.focalLatLng =
+                                                      MapLatLng(
+                                                          _orteAnzeigenAufKarte[
+                                                          _currentSelectedIndex]
+                                                              .latitude,
+                                                          _orteAnzeigenAufKarte[
+                                                          _currentSelectedIndex]
+                                                              .longitude);
+                                                  _zoomPanBehavior.zoomLevel =
+                                                      zoomlevel;
+                                                },
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(
+                                                      10.0),
+                                                  decoration: BoxDecoration(
+                                                    color: Theme.of(context)
+                                                        .brightness ==
+                                                        Brightness.light
+                                                        ? const Color.fromRGBO(
+                                                        255, 255, 255, 1)
+                                                        : const Color.fromRGBO(
+                                                        66, 66, 66, 1),
+                                                    border: Border.all(
+                                                      color:
+                                                      const Color.fromRGBO(
+                                                          153, 153, 153, 1),
+                                                      width: 0.5,
+                                                    ),
+                                                    borderRadius:
+                                                    BorderRadius.circular(
+                                                        10),
+                                                  ),
+                                                  child: Row(children: <Widget>[
+                                                    // Adding title and description for card.
+                                                    Expanded(
+                                                        child: Padding(
+                                                          padding:
+                                                          const EdgeInsets.only(
+                                                              top: 0.0,
+                                                              right: 5.0),
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                            children: <Widget>[
+                                                              Text(item.name,
+                                                                  softWrap: true,
+                                                                  maxLines: 2,
+                                                                  style: const TextStyle(
+                                                                      height: 0,
+                                                                      fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                      fontSize: 12),
+                                                                  textAlign:
+                                                                  TextAlign
+                                                                      .start),
+                                                              Text(
+                                                                  (_currentPlace ==
+                                                                      null &&
+                                                                      index ==
+                                                                          0)
+                                                                      ? ""
+                                                                      : "(${item.town}, ${item.state}, ${item.country})",
+                                                                  // maxLines: 1,
+                                                                  softWrap: true,
+                                                                  style: TextStyle(
+                                                                      height: 0,
+                                                                      fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                      color: Colors
+                                                                          .grey[
+                                                                      800],
+                                                                      fontSize: 10),
+                                                                  textAlign:
+                                                                  TextAlign
+                                                                      .start),
+                                                              const SizedBox(
+                                                                  height: 3),
+                                                              Text(item.adress,
+                                                                  softWrap: true,
+                                                                  style: TextStyle(
+                                                                      height: 0,
+                                                                      fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                      color: Colors
+                                                                          .grey[
+                                                                      600],
+                                                                      fontSize: 10),
+                                                                  textAlign:
+                                                                  TextAlign
+                                                                      .start),
+                                                              const SizedBox(
+                                                                  height: 3),
+                                                              Expanded(
+                                                                  child: Container(
+                                                                    // color: Colors.red,
+                                                                    child:
+                                                                    SingleChildScrollView(
+                                                                      padding:
+                                                                      const EdgeInsets
+                                                                          .only(
+                                                                          top: 2.0,
+                                                                          bottom:
+                                                                          2.0),
+                                                                      child: Text(
+                                                                        softWrap: true,
+                                                                        item.description,
+                                                                        style:
+                                                                        const TextStyle(
+                                                                            height:
+                                                                            0,
+                                                                            fontSize:
+                                                                            10),
+                                                                      ),
+                                                                    ),
+                                                                  ))
+                                                            ],
+                                                          ),
+                                                        )),
+                                                    // Adding Image for card.
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                      const BorderRadius
+                                                          .all(
+                                                          Radius.circular(
+                                                              4)),
+                                                      child: Image.asset(
+                                                        item.imagePath,
+                                                        height:
+                                                        _cardHeight - 10,
+                                                        width: _cardHeight - 10,
+                                                        fit: BoxFit.fill,
+                                                      ),
+                                                    )
+                                                  ]),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  positionsMeldung.isNotEmpty
+                                      ? Container(
+                                    color: Colors.grey[200],
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 5),
+                                    child: Row(
+                                      children: [
+                                        const Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 0,
+                                              right: 5,
+                                              top: 0,
+                                              bottom: 10),
+                                          child: Icon(
+                                              color: Colors.blue,
+                                              size: 30,
+                                              Icons.info_outlined),
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            positionsMeldung,
+                                            textAlign: TextAlign.start,
+                                            style: const TextStyle(
+                                              height: 0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                      : Container(),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      _currentSelectedIndex != 0 &&
+                                          isLocationavailable()
+                                          ? Padding(
+                                        padding:
+                                        const EdgeInsets.all(8.0),
+                                        child: Container(
+                                          padding: const EdgeInsets.only(
+                                              left: 10,
+                                              right: 10,
+                                              top: 10,
+                                              bottom: 10),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                            BorderRadius.circular(10),
+                                            color: Colors.grey[400],
+                                          ),
+                                          child: Text(
+                                            "${roundDouble(getEntfernung(_orteAnzeigenAufKarte.elementAt(_currentSelectedIndex)), 2)} km",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                          : Container()
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 0, right: 50, bottom: 0),
-                          child: getSuchfeld(),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              Stack(
-                  alignment: AlignmentDirectional.topCenter,
-                  children: getWidgets()),
-            ],
+                ),
+                getSuchListe(),
+              ],
+            ),
           ),
         ),
       );
@@ -477,7 +843,10 @@ class LocationsPageState extends State<LocationsPage> {
                   size: 100,
                 ),
               ),
-              const Text('Ihr Standort wird ermittelt...',
+              Text(
+                  FlavorSettings.getFlavorSettings()
+                      .style!
+                      .getStandortMeldung5(),
                   softWrap: true,
                   style: TextStyle(
                       height: 0, fontWeight: FontWeight.bold, fontSize: 18),
@@ -489,296 +858,7 @@ class LocationsPageState extends State<LocationsPage> {
     }
   }
 
-  List<Widget> getWidgets() {
-    List<Widget> widgets = <Widget>[];
-
-    widgets.add(Column(
-      children: [
-        SizedBox(
-          height: (MediaQuery.of(context).orientation == Orientation.landscape)
-              ? 5
-              : 15,
-        ),
-        SizedBox(
-          height: (MediaQuery.of(context).orientation == Orientation.landscape)
-              ? MediaQuery.of(context).size.height * 0.58
-              : MediaQuery.of(context).size.height * 0.65,
-          child: Stack(
-            alignment: AlignmentDirectional.topCenter,
-            children: <Widget>[
-              Positioned.fill(
-                child: Image.asset(
-                  'lib/images/maps_grid.png',
-                  repeat: ImageRepeat.repeat,
-                ),
-              ),
-              SfMaps(
-                layers: <MapLayer>[
-                  // getLayer(),
-
-                  MapTileLayer(
-                    /// URL to request the tiles from the providers.
-                    ///
-                    /// The [urlTemplate] accepts the URL in WMTS format i.e. {z} —
-                    /// zoom level, {x} and {y} — tile coordinates.
-                    ///
-                    /// We will replace the {z}, {x}, {y} internally based on the
-                    /// current center point and the zoom level.
-
-                    urlTemplate:
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-
-                    zoomPanBehavior: _zoomPanBehavior,
-                    controller: _mapController,
-                    initialMarkersCount: _orteAnzeigenAufKarte.length,
-                    tooltipSettings: const MapTooltipSettings(
-                      color: Colors.transparent,
-                    ),
-
-                    markerBuilder: (BuildContext context, int index) {
-                      final double markerSize =
-                      _currentSelectedIndex == index ? 40 : 25;
-                      return MapMarker(
-                        latitude: _orteAnzeigenAufKarte[index].latitude,
-                        longitude: _orteAnzeigenAufKarte[index].longitude,
-                        alignment: Alignment.bottomCenter,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (_currentSelectedIndex != index) {
-                              print("auf anderen Marker geklickt");
-                              _canUpdateFocalLatLng = false;
-                              _tappedMarkerIndex = index;
-                              _pageViewController.animateToPage(
-                                index,
-                                duration: const Duration(milliseconds: 500),
-                                curve: Curves.easeInOut,
-                              );
-                            } else {
-                              print("auf ausgewählten Marker geklickt");
-                            }
-
-                            _zoomPanBehavior.focalLatLng = MapLatLng(
-                                _orteAnzeigenAufKarte[index].latitude,
-                                _orteAnzeigenAufKarte[index].longitude);
-
-                            _zoomPanBehavior.zoomLevel = zoomlevel;
-
-                            if (zoomlevel < 14) {
-                              print("Das Zoomlevel wurde auf 14 gestellt!");
-                              _zoomPanBehavior.zoomLevel = 14;
-                            }
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            height: markerSize,
-                            width: markerSize,
-                            child: FittedBox(
-                              child: getMarkerIcon(markerSize, index),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  color: Colors.transparent,
-                  height: _cardHeight,
-                  padding: const EdgeInsets.only(bottom: 10),
-
-                  /// PageView which shows the world wonder details at the bottom.
-                  child: PageView.builder(
-                    itemCount: _orteAnzeigenAufKarte.length,
-                    onPageChanged: _handlePageChange,
-                    controller: _pageViewController,
-                    itemBuilder: (BuildContext context, int index) {
-                      final _LocationDetails item =
-                      _orteAnzeigenAufKarte[index];
-                      return Transform.scale(
-                        scale: index == _currentSelectedIndex ? 1 : 0.85,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: const BorderRadius.all(
-                                Radius.elliptical(10, 10)),
-                            onTap: () {
-                              if (_currentSelectedIndex != index) {
-                                print("auf andere Infokarte geklickt!");
-                                _pageViewController.animateToPage(
-                                  index,
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                );
-                              } else {
-                                print("auf ausgewählte Infokarte geklickt!");
-                              }
-                              _zoomPanBehavior.focalLatLng = MapLatLng(
-                                  _orteAnzeigenAufKarte[_currentSelectedIndex]
-                                      .latitude,
-                                  _orteAnzeigenAufKarte[_currentSelectedIndex]
-                                      .longitude);
-                              _zoomPanBehavior.zoomLevel = zoomlevel;
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(10.0),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).brightness == Brightness.light
-                                    ? const Color.fromRGBO(255, 255, 255, 1)
-                                    : const Color.fromRGBO(66, 66, 66, 1),
-                                border: Border.all(
-                                  color: const Color.fromRGBO(153, 153, 153, 1),
-                                  width: 0.5,
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(children: <Widget>[
-                                // Adding title and description for card.
-                                Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          top: 0.0, right: 5.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          Text(item.name,
-                                              softWrap: true,
-                                              maxLines: 2,
-                                              style: const TextStyle(
-                                                  height: 0,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12),
-                                              textAlign: TextAlign.start),
-                                          Text((_currentPlace==null && index==0) ? "" : "(${item.town}, ${item.state}, ${item.country})",
-                                              // maxLines: 1,
-                                              softWrap: true,
-                                              style: TextStyle(
-                                                  height: 0,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.grey[800],
-                                                  fontSize: 10),
-                                              textAlign: TextAlign.start),
-                                          const SizedBox(height: 3),
-                                          Text(item.adress,
-                                              softWrap: true,
-                                              style: TextStyle(
-                                                  height: 0,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.grey[600],
-                                                  fontSize: 10),
-                                              textAlign: TextAlign.start),
-                                          const SizedBox(height: 3),
-                                          Expanded(
-                                              child: Container(
-                                                // color: Colors.red,
-                                                child: SingleChildScrollView(
-                                                  padding: const EdgeInsets.only(
-                                                      top: 2.0, bottom: 2.0),
-                                                  child: Text(
-                                                    softWrap: true,
-                                                    item.description,
-                                                    style: const TextStyle(
-                                                        height: 0, fontSize: 10),
-                                                  ),
-                                                ),
-                                              ))
-                                        ],
-                                      ),
-                                    )),
-                                // Adding Image for card.
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(4)),
-                                  child: Image.asset(
-                                    item.imagePath,
-                                    height: _cardHeight - 10,
-                                    width: _cardHeight - 10,
-                                    fit: BoxFit.fill,
-                                  ),
-                                )
-                              ]),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              positionsMeldung.isNotEmpty
-                  ? Container(
-                color: Colors.grey[200],
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 5),
-                child: Row(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(
-                          left: 0, right: 5, top: 0, bottom: 10),
-                      child: Icon(
-                          color: Colors.blue,
-                          size: 30,
-                          Icons.info_outlined),
-                    ),
-                    Expanded(
-                      child: Text(
-                        positionsMeldung,
-                        textAlign: TextAlign.start,
-                        style: const TextStyle(
-                          height: 0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-                  : Container(),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-
-                  _currentSelectedIndex!=0 && isLocationavailable() ?
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                          left: 10,
-                          right: 10,
-                          top: 10,
-                          bottom: 10),
-                      decoration: BoxDecoration(
-                        borderRadius:
-                        BorderRadius.circular(10),
-                        color: Colors.grey[400],
-                      ),
-                      child: Text("${roundDouble(getEntfernung(_orteAnzeigenAufKarte.elementAt(_currentSelectedIndex)),2)} km",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  )
-                  :
-                  Container()
-                ],
-              ),
-
-            ],
-          ),
-        ),
-      ],
-    ));
-
+  Widget getSuchListe() {
     if (karteOhneGesuchteOrte) {
       if (this.fieldText.value.text.trim().isEmpty) {
         print("Suchfeld leer!");
@@ -787,159 +867,168 @@ class LocationsPageState extends State<LocationsPage> {
         print("Suchfeld gefüllt!");
         getItemsListe();
 
-        widgets.add(SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8,
-          child: Card(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-              side: const BorderSide(color: Colors.black, width: 1.0),
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            margin:
-            const EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 20),
-            elevation: 3,
-            child: Padding(
-              padding:
-              const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  getPositionsmeldung(),
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 2),
-                    child: Text("ERGEBNISSE",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black,
-                        fontSize: 16,
+        return Padding(
+          padding: (MediaQuery.of(context).orientation == Orientation.portrait)
+              ? const EdgeInsets.only(top: 150)
+              : const EdgeInsets.only(top: 60),
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Card(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                side: const BorderSide(color: Colors.black, width: 1.0),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              margin:
+              const EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 20),
+              elevation: 3,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 10, right: 10, top: 5, bottom: 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    getPositionsmeldung(),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        FlavorSettings.getFlavorSettings()
+                            .style!
+                            .getErgebnisse(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
-                  ),
-                  _orteAnzeigenInListe.isEmpty
-                      ? const Padding(
-                    padding: EdgeInsets.only(bottom: 5),
-                    child: Text("Nichts gefunden!"),
-                  )
-                      : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _orteAnzeigenInListe.length,
-                      itemBuilder: (context, index) {
+                    _orteAnzeigenInListe.isEmpty
+                        ? Padding(
+                      padding: EdgeInsets.only(bottom: 5),
+                      child: Text(FlavorSettings.getFlavorSettings()
+                          .style!
+                          .getNichtsGefunden()),
+                    )
+                        : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _orteAnzeigenInListe.length,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () {
+                              print(
+                                  "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
 
-                        return GestureDetector(
-                          onTap: () {
-                            print(
-                                "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
+                              setState(() {
+                                if (isLocationavailable()) {
+                                  _currentSelectedIndex = index + 1;
+                                } else {
+                                  _currentSelectedIndex = index;
+                                }
 
-                            setState(() {
-                              if (isLocationavailable()) {
-                                _currentSelectedIndex = index + 1;
-                              } else {
-                                _currentSelectedIndex = index;
-                              }
-
-                              mapLoaded = false;
-                              karteOhneGesuchteOrte = false;
-                              updatePageviewsSelectedPage = true;
-                            });
-                          },
-                          child: Container(
-                            //color: Colors.blue,
-                              margin:
-                              const EdgeInsets.only(top: 5, bottom: 5),
-                              child: Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    //color: Colors.blue,
-                                    margin: const EdgeInsets.only(
-                                        left: 0,
-                                        right: 10,
-                                        top: 0,
-                                        bottom: 0),
-                                    child: Container(
-                                      padding: const EdgeInsets.only(
-                                          left: 10,
+                                mapLoaded = false;
+                                karteOhneGesuchteOrte = false;
+                                updatePageviewsSelectedPage = true;
+                              });
+                            },
+                            child: Container(
+                              //color: Colors.blue,
+                                margin: const EdgeInsets.only(
+                                    top: 5, bottom: 5),
+                                child: Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      //color: Colors.blue,
+                                      margin: const EdgeInsets.only(
+                                          left: 0,
                                           right: 10,
-                                          top: 10,
-                                          bottom: 10),
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                        BorderRadius.circular(10),
-                                        color: Color(0xFF7B1A33),
-                                      ),
-                                      child: Text(
-                                        isLocationavailable()
-                                            ? "${roundDouble(_orteAnzeigenInListe[index].entfernung, 2)} km"
-                                            : "? km",
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          fontSize: 13,
+                                          top: 0,
+                                          bottom: 0),
+                                      child: Container(
+                                        padding: const EdgeInsets.only(
+                                            left: 10,
+                                            right: 10,
+                                            top: 10,
+                                            bottom: 10),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                          BorderRadius.circular(10),
+                                          color: Color(0xFF7B1A33),
+                                        ),
+                                        child: Text(
+                                          isLocationavailable()
+                                              ? "${roundDouble(_orteAnzeigenInListe[index].entfernung, 2)} km"
+                                              : "? km",
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontSize: 13,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _orteAnzeigenInListe[index].name,
-                                          softWrap: true,
-                                          style: const TextStyle(
-                                            height: 0,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                            fontSize: 16,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _orteAnzeigenInListe[index]
+                                                .name,
+                                            softWrap: true,
+                                            style: const TextStyle(
+                                              height: 0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                              fontSize: 16,
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          "(${_orteAnzeigenInListe[index].town}, ${_orteAnzeigenInListe[index].state}, ${_orteAnzeigenInListe[index].country})",
-                                          softWrap: true,
-                                          style: const TextStyle(
-                                            height: 0,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
-                                            fontSize: 14,
+                                          Text(
+                                            "(${_orteAnzeigenInListe[index].town}, ${_orteAnzeigenInListe[index].state}, ${_orteAnzeigenInListe[index].country})",
+                                            softWrap: true,
+                                            style: const TextStyle(
+                                              height: 0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                              fontSize: 14,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(
-                                          height: 5,
-                                        ),
-                                        Text(
-                                          _orteAnzeigenInListe[index]
-                                              .adress,
-                                          softWrap: true,
-                                          style: const TextStyle(
-                                            height: 0,
-                                            fontWeight: FontWeight.normal,
-                                            color: Colors.grey,
-                                            fontSize: 14,
+                                          const SizedBox(
+                                            height: 5,
                                           ),
-                                        ),
-                                      ],
+                                          Text(
+                                            _orteAnzeigenInListe[index]
+                                                .adress,
+                                            softWrap: true,
+                                            style: const TextStyle(
+                                              height: 0,
+                                              fontWeight: FontWeight.normal,
+                                              color: Colors.grey,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              )),
-                        );
-                      }),
-                  getAllResultsContainer(),
-                  const SizedBox(height: 10),
-                ],
+                                  ],
+                                )),
+                          );
+                        }),
+                    getAllResultsContainer(),
+                    const SizedBox(height: 10),
+                  ],
+                ),
               ),
             ),
           ),
-        ));
+        );
       }
     }
-
-    return widgets;
+    return Container();
   }
 
   void _handlePageChange(int index) {
@@ -986,15 +1075,14 @@ class LocationsPageState extends State<LocationsPage> {
 
   Widget getMarkerIcon(double markersize, index) {
     if (isLocationavailable() && index == 0) {
-      return
-        Container(
-          padding: EdgeInsets.all(2),
-          decoration: BoxDecoration(color: Colors.red,shape: BoxShape.circle),
-          child: CircleAvatar(
-            backgroundImage: AssetImage('lib/images/profilbild.jpg'),
-            radius: markersize,
-          ),
-        );
+      return Container(
+        padding: EdgeInsets.all(2),
+        decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+        child: CircleAvatar(
+          backgroundImage: AssetImage('lib/images/profilbild.jpg'),
+          radius: markersize,
+        ),
+      );
     } else {
       return Icon(Icons.location_on,
           color: _currentSelectedIndex == index ? Colors.blue : Colors.red,
@@ -1129,7 +1217,7 @@ class LocationsPageState extends State<LocationsPage> {
                 color: Colors.black,
                 size: 20,
               )),
-          hintText: "Suche",
+          hintText: FlavorSettings.getFlavorSettings().style!.getSuche(),
         ),
       ),
     );
@@ -1151,24 +1239,8 @@ class LocationsPageState extends State<LocationsPage> {
           print("Beschreibung " + d.name);
 
           _orteGefunden.add(d);
-          // _orteGefunden.add(_LocationDetails(
-          //     continent: d.continent,
-          //     country: d.country,
-          //     state: d.state,
-          //     town: d.town,
-          //     adress: d.adress,
-          //     name: d.name,
-          //     description: d.description,
-          //     imagePath: d.imagePath,
-          //     latitude: d.latitude,
-          //     longitude: d.longitude,
-          //     entfernung: getEntfernung(d)));
         }
       }
-
-      // if (isLocationavailable()) {
-      //   _orteGefunden.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-      // }
     }
 
     setState(() {
@@ -1182,9 +1254,9 @@ class LocationsPageState extends State<LocationsPage> {
   void getItemsListe() {
     _orteAnzeigenInListe.clear();
 
-    if(isLocationavailable()){
+    if (isLocationavailable()) {
       for (_LocationDetails ort in _orteGefunden) {
-        ort.entfernung=getEntfernung(ort);
+        ort.entfernung = getEntfernung(ort);
       }
       _orteGefunden.sort((a, b) => a.entfernung.compareTo(b.entfernung));
     }
@@ -1200,7 +1272,6 @@ class LocationsPageState extends State<LocationsPage> {
         _orteAnzeigenInListe.add(_orteGefunden.elementAt(i));
       }
     }
-
   }
 
   Widget getAllResultsContainer() {
@@ -1223,7 +1294,8 @@ class LocationsPageState extends State<LocationsPage> {
               borderRadius: BorderRadius.circular(10),
               color: Colors.grey,
             ),
-            child: const Text("Alle Ergebnisse",
+            child: Text(
+              FlavorSettings.getFlavorSettings().style!.getAlleErgebnisse(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -1258,7 +1330,8 @@ class LocationsPageState extends State<LocationsPage> {
       print("Positionsermittlung fertig");
     }).catchError((e) {
       print("Zeitüberschreitung bei der Positionsbestimmung!");
-      positionsMeldung = "Ihr Standort konnte nicht bestimmt werden...!";
+      positionsMeldung =
+          FlavorSettings.getFlavorSettings().style!.getStandortMeldung1();
     });
   }
 
@@ -1280,7 +1353,8 @@ class LocationsPageState extends State<LocationsPage> {
     LocationPermission permission;
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      positionsMeldung ='Der Standort ist deaktiviert... Bitte Aktivieren sie die Dienste!';
+      positionsMeldung =
+          FlavorSettings.getFlavorSettings().style!.getStandortMeldung2();
       print("Meldung: $positionsMeldung");
 
       return false;
@@ -1290,13 +1364,15 @@ class LocationsPageState extends State<LocationsPage> {
       permission = await Geolocator.requestPermission()
           .onError((error, stackTrace) => LocationPermission.unableToDetermine);
       if (permission == LocationPermission.denied) {
-        positionsMeldung = 'Standortberechtigungen wurden verweigert!';
+        positionsMeldung =
+            FlavorSettings.getFlavorSettings().style!.getStandortMeldung3();
         print("Meldung: $positionsMeldung");
         return false;
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      positionsMeldung = 'Standortberechtigungen wurden dauerhaft verweigert, es kann nicht nach Berechtigungen gefragt werden.';
+      positionsMeldung =
+          FlavorSettings.getFlavorSettings().style!.getStandortMeldung4();
       print("Meldung: $positionsMeldung");
 
       return false;
@@ -1348,7 +1424,7 @@ class LocationsPageState extends State<LocationsPage> {
 
     double distance = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
 
-    return distance/1000;
+    return distance / 1000;
   }
 
   double berechneEntfernung(int index) {
@@ -1360,7 +1436,7 @@ class LocationsPageState extends State<LocationsPage> {
 
     double distance = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
 
-    return distance/1000;
+    return distance / 1000;
   }
 
   double roundDouble(double value, int places) {
@@ -1447,7 +1523,7 @@ class LocationsPageState extends State<LocationsPage> {
 }
 
 class _LocationDetails {
-   _LocationDetails({
+  _LocationDetails({
     required this.continent,
     required this.country,
     required this.state,
@@ -1474,4 +1550,3 @@ class _LocationDetails {
   final double longitude;
   double entfernung;
 }
-

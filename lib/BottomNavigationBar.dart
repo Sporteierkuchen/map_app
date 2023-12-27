@@ -58,7 +58,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           backgroundColor: Color(0xFFFFFFFF),
           selectedItemColor: Color(0xFF7B1A33),
           unselectedItemColor:Color(0xFFCAB69E),
-          iconSize: 30,
+         // iconSize: 30,
           onTap: (value) {
             setState(() {
               _currentIndex = value;
@@ -84,7 +84,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
          const Icon(
            Icons.home,
            color: Colors.black,
-           size: 30.0,
+           size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
          ),
 
 
@@ -101,7 +101,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           const Icon(
             Icons.map,
             color: Colors.black,
-            size: 30.0,
+            size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
           ),
 
 
@@ -118,7 +118,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           const Icon(
             Icons.add_call,
             color: Colors.black,
-            size: 30.0,
+            size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
           ),
 
       ),
@@ -135,7 +135,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           const Icon(
             Icons.person,
             color: Colors.black,
-            size: 30.0,
+            size: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.04,
           ),
 
       ),
