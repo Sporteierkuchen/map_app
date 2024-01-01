@@ -247,6 +247,14 @@ class LocationsPageState extends State<LocationsPage> {
                         _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
 
                   }
+                  else{
+                    List<_LocationDetails> list = _orteAnzeigenAufKarte;
+                    list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+                    _LocationDetails median = getmedianEntfernung(list);
+                    print("Median: ${median.name} Entfernung: ${median.entfernung}");
+
+                    getZoomLevel(median.entfernung);
+                  }
 
                 } else {
                   // List<_LocationDetails> list = _orteAnzeigenAufKarte;
@@ -653,8 +661,7 @@ class LocationsPageState extends State<LocationsPage> {
                                                           _orteAnzeigenAufKarte[
                                                           _currentSelectedIndex]
                                                               .longitude);
-                                                  // _zoomPanBehavior.zoomLevel =
-                                                  //     zoomlevel;
+                                                  _zoomPanBehavior.zoomLevel = zoomlevel;
                                                 },
                                                 child: Container(
                                                   padding: const EdgeInsets.all(
@@ -935,7 +942,7 @@ class LocationsPageState extends State<LocationsPage> {
                     const Padding(
                       padding: EdgeInsets.only(bottom: 2),
                       child: Text(
-                       "Ergebnisse",
+                       "ERGEBNISSE",
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           color: Colors.black,
