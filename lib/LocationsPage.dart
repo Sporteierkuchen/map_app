@@ -138,47 +138,47 @@ class LocationsPageState extends State<LocationsPage> {
       entfernung: 0,
     ));
 
-    _orte.add(_LocationDetails(
-      continent: 'Europa',
-      country: 'Deutschland',
-      state: 'Sachsen',
-      town: 'Blankenhain',
-      adress: 'Am Koberbach 31, 08451 Crimmitschau',
-      name: 'Zuhause',
-      description: 'Das Haus',
-      imagePath: 'lib/images/home.jpg',
-      latitude: 50.79572371594455,
-      longitude: 12.300325301623266,
-      entfernung: 0,
-    ));
-
-    _orte.add(_LocationDetails(
-      continent: 'Europa',
-      country: 'Deutschland',
-      state: 'Sachsen',
-      town: 'Blankenhain',
-      adress: 'An d. Rußdorfer Kirche 7, 08451 Crimmitschau',
-      name: 'Kirche Rußdorf',
-      description: '...',
-      imagePath: 'lib/images/kirche.jpg',
-      latitude: 50.794256259025374,
-      longitude: 12.30798913645846,
-      entfernung: 0,
-    ));
-
-    _orte.add(_LocationDetails(
-      continent: 'Europa',
-      country: 'Deutschland',
-      state: 'Sachsen',
-      town: 'Blankenhain',
-      adress: 'Am Schloss 7, 08451 Crimmitschau',
-      name: 'Schloss Blankenhain',
-      description: '...',
-      imagePath: 'lib/images/schloss.jpg',
-      latitude: 50.79964854352937,
-      longitude: 12.283992536778543,
-      entfernung: 0,
-    ));
+    // _orte.add(_LocationDetails(
+    //   continent: 'Europa',
+    //   country: 'Deutschland',
+    //   state: 'Sachsen',
+    //   town: 'Blankenhain',
+    //   adress: 'Am Koberbach 31, 08451 Crimmitschau',
+    //   name: 'Zuhause',
+    //   description: 'Das Haus',
+    //   imagePath: 'lib/images/home.jpg',
+    //   latitude: 50.79572371594455,
+    //   longitude: 12.300325301623266,
+    //   entfernung: 0,
+    // ));
+    //
+    // _orte.add(_LocationDetails(
+    //   continent: 'Europa',
+    //   country: 'Deutschland',
+    //   state: 'Sachsen',
+    //   town: 'Blankenhain',
+    //   adress: 'An d. Rußdorfer Kirche 7, 08451 Crimmitschau',
+    //   name: 'Kirche Rußdorf',
+    //   description: '...',
+    //   imagePath: 'lib/images/kirche.jpg',
+    //   latitude: 50.794256259025374,
+    //   longitude: 12.30798913645846,
+    //   entfernung: 0,
+    // ));
+    //
+    // _orte.add(_LocationDetails(
+    //   continent: 'Europa',
+    //   country: 'Deutschland',
+    //   state: 'Sachsen',
+    //   town: 'Blankenhain',
+    //   adress: 'Am Schloss 7, 08451 Crimmitschau',
+    //   name: 'Schloss Blankenhain',
+    //   description: '...',
+    //   imagePath: 'lib/images/schloss.jpg',
+    //   latitude: 50.79964854352937,
+    //   longitude: 12.283992536778543,
+    //   entfernung: 0,
+    // ));
 
     _currentSelectedIndex = 0;
     _canUpdateFocalLatLng = true;
@@ -575,10 +575,10 @@ class LocationsPageState extends State<LocationsPage> {
                                                         index]
                                                             .longitude);
 
-                                                _zoomPanBehavior.zoomLevel =
-                                                    zoomlevel;
+                                                // _zoomPanBehavior.zoomLevel =
+                                                //     zoomlevel;
 
-                                                if (zoomlevel < 14) {
+                                                if (_zoomPanBehavior.zoomLevel < 14) {
                                                   print(
                                                       "Das Zoomlevel wurde auf 14 gestellt!");
                                                   _zoomPanBehavior.zoomLevel =
@@ -653,8 +653,8 @@ class LocationsPageState extends State<LocationsPage> {
                                                           _orteAnzeigenAufKarte[
                                                           _currentSelectedIndex]
                                                               .longitude);
-                                                  _zoomPanBehavior.zoomLevel =
-                                                      zoomlevel;
+                                                  // _zoomPanBehavior.zoomLevel =
+                                                  //     zoomlevel;
                                                 },
                                                 child: Container(
                                                   padding: const EdgeInsets.all(
@@ -1099,10 +1099,12 @@ class LocationsPageState extends State<LocationsPage> {
     /// marker is directly clicked, only the respective card should be moved to
     /// center and the marker itself should not move to the center of the maps.
     if (_canUpdateFocalLatLng) {
+      print("pagechange");
       _zoomPanBehavior.focalLatLng = MapLatLng(
           _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
           _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
-      _zoomPanBehavior.zoomLevel = zoomlevel;
+      //_zoomPanBehavior.zoomLevel = zoomlevel;
+
     }
 
     /// Updating the design of the selected marker. Please check the
