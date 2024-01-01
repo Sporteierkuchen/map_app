@@ -138,6 +138,48 @@ class LocationsPageState extends State<LocationsPage> {
       entfernung: 0,
     ));
 
+    _orte.add(_LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Sachsen',
+      town: 'Blankenhain',
+      adress: 'Am Koberbach 31, 08451 Crimmitschau',
+      name: 'Zuhause',
+      description: 'Das Haus',
+      imagePath: 'lib/images/home.jpg',
+      latitude: 50.79572371594455,
+      longitude: 12.300325301623266,
+      entfernung: 0,
+    ));
+
+    _orte.add(_LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Sachsen',
+      town: 'Blankenhain',
+      adress: 'An d. Rußdorfer Kirche 7, 08451 Crimmitschau',
+      name: 'Kirche Rußdorf',
+      description: '...',
+      imagePath: 'lib/images/kirche.jpg',
+      latitude: 50.794256259025374,
+      longitude: 12.30798913645846,
+      entfernung: 0,
+    ));
+
+    _orte.add(_LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Sachsen',
+      town: 'Blankenhain',
+      adress: 'Am Schloss 7, 08451 Crimmitschau',
+      name: 'Schloss Blankenhain',
+      description: '...',
+      imagePath: 'lib/images/schloss.jpg',
+      latitude: 50.79964854352937,
+      longitude: 12.283992536778543,
+      entfernung: 0,
+    ));
+
     _currentSelectedIndex = 0;
     _canUpdateFocalLatLng = true;
     _mapController = MapTileLayerController();
@@ -158,9 +200,9 @@ class LocationsPageState extends State<LocationsPage> {
 
           if (position != null) {
             setState(() {
-              // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              //   content: Text("Position aktualisiert!"),
-              // ));
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text("Position aktualisiert!"),
+              ));
 
               try {
                 _currentPosition = position;
@@ -184,21 +226,28 @@ class LocationsPageState extends State<LocationsPage> {
                 _mapController.updateMarkers([0]);
 
                 if (karteOhneGesuchteOrte) {
-                  _orteAnzeigenAufKarte.removeAt(1);
-                  _orteAnzeigenAufKarte.add(getkleinsteEntfernung());
-                  _mapController.updateMarkers([1]);
 
-                  List<_LocationDetails> list = _orteAnzeigenAufKarte;
-                  list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-                  _LocationDetails median = getmedianEntfernung(list);
-                  print("Median: ${median.name} Entfernung: ${median.entfernung}");
+                  _LocationDetails ort=getkleinsteEntfernung();
+                  if(_orteAnzeigenAufKarte[1]!=ort){
 
-                  getZoomLevel(median.entfernung);
-                  _zoomPanBehavior.zoomLevel = zoomlevel;
+                    _orteAnzeigenAufKarte.removeAt(1);
+                    _orteAnzeigenAufKarte.add(ort);
+                    _mapController.updateMarkers([1]);
 
-                  _zoomPanBehavior.focalLatLng = MapLatLng(
-                      _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
-                      _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
+                    List<_LocationDetails> list = _orteAnzeigenAufKarte;
+                    list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+                    _LocationDetails median = getmedianEntfernung(list);
+                    print("Median: ${median.name} Entfernung: ${median.entfernung}");
+
+                    getZoomLevel(median.entfernung);
+                    _zoomPanBehavior.zoomLevel = zoomlevel;
+
+                    _zoomPanBehavior.focalLatLng = MapLatLng(
+                        _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
+                        _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
+
+                  }
+
                 } else {
                   // List<_LocationDetails> list = _orteAnzeigenAufKarte;
                   // for (_LocationDetails ort in list) {
@@ -370,6 +419,7 @@ class LocationsPageState extends State<LocationsPage> {
                                 Text(
                                   "Standorte",
                                   style: TextStyle(
+                                    height: 0,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black,
                                     fontSize: 25,
@@ -387,6 +437,7 @@ class LocationsPageState extends State<LocationsPage> {
                                 Text(
                                   'Hallo, Max.',
                                   style: TextStyle(
+                                    height: 0,
                                     fontWeight: FontWeight.normal,
                                     color: Colors.grey,
                                     fontSize: 20,
@@ -1537,4 +1588,36 @@ class _LocationDetails {
   final double latitude;
   final double longitude;
   double entfernung;
+
+
+  @override
+  bool operator ==(Object other) {
+
+    if (identical(this, other)) {
+
+      return true;
+
+    }
+
+    return (other is _LocationDetails
+
+        && other.runtimeType == runtimeType
+        && other.continent == continent
+        && other.country == country
+        && other.state == state
+        && other.town == town
+        && other.adress == adress
+        && other.name == name
+        && other.description== description
+        && other.latitude == latitude
+        && other.longitude == longitude
+
+    );
+
+  }
+
+  @override
+  // TODO: implement hashCode
+  int get hashCode => Object.hash(continent, country, state, town, adress, name, description, latitude, longitude);
+
 }
