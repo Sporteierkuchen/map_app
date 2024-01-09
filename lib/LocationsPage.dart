@@ -416,6 +416,7 @@ class LocationsPageState extends State<LocationsPage> {
                                 Text(
                                   "Standorte",
                                   style: TextStyle(
+                                    height: 0,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black,
                                     fontSize: 25,
@@ -441,6 +442,7 @@ class LocationsPageState extends State<LocationsPage> {
                                     softWrap: true,
                                     maxLines: 1,
                                     style: TextStyle(
+                                      height: 0,
                                       fontWeight: FontWeight.normal,
                                       color: Colors.grey,
                                       fontSize: 20,
