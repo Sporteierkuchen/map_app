@@ -7,6 +7,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
+import 'CustomerDto.dart';
+import 'PersistenceUtil.dart';
+
 
 class LocationsPage extends StatefulWidget {
   const LocationsPage({super.key});
@@ -20,6 +23,7 @@ class LocationsPageState extends State<LocationsPage> {
   Placemark? _currentPlace;
   Position? _currentPosition;
   String positionsMeldung = "";
+  bool positionsMeldungFertig = false;
   bool standortErmittelt = false;
   bool mapLoaded = false;
 
@@ -57,12 +61,15 @@ class LocationsPageState extends State<LocationsPage> {
 
   late StreamSubscription<Position> positionStream;
 
+  CustomerDto? customerDTo;
+
   @override
   void initState() {
     super.initState();
     print("init state");
 
     getPositionAndAdress().whenComplete(() => setState(() {
+
       standortErmittelt = true;
       // Update your UI with the desired changes.
     }));
@@ -119,8 +126,8 @@ class LocationsPageState extends State<LocationsPage> {
       name: 'Greiz Bahnhof',
       description: 'gleich haben wir den salat',
       imagePath: 'lib/images/greizbahnhof.jpg',
-      latitude: 50.65675405746982,
-      longitude: 12.194118651798352,
+      latitude: 50.65303075503714,
+      longitude: 12.194454584482841,
       entfernung: 0,
     ));
 
@@ -137,48 +144,6 @@ class LocationsPageState extends State<LocationsPage> {
       longitude: 12.388050660955825,
       entfernung: 0,
     ));
-
-    // _orte.add(_LocationDetails(
-    //   continent: 'Europa',
-    //   country: 'Deutschland',
-    //   state: 'Sachsen',
-    //   town: 'Blankenhain',
-    //   adress: 'Am Koberbach 31, 08451 Crimmitschau',
-    //   name: 'Zuhause',
-    //   description: 'Das Haus',
-    //   imagePath: 'lib/images/home.jpg',
-    //   latitude: 50.79572371594455,
-    //   longitude: 12.300325301623266,
-    //   entfernung: 0,
-    // ));
-    //
-    // _orte.add(_LocationDetails(
-    //   continent: 'Europa',
-    //   country: 'Deutschland',
-    //   state: 'Sachsen',
-    //   town: 'Blankenhain',
-    //   adress: 'An d. Rußdorfer Kirche 7, 08451 Crimmitschau',
-    //   name: 'Kirche Rußdorf',
-    //   description: '...',
-    //   imagePath: 'lib/images/kirche.jpg',
-    //   latitude: 50.794256259025374,
-    //   longitude: 12.30798913645846,
-    //   entfernung: 0,
-    // ));
-    //
-    // _orte.add(_LocationDetails(
-    //   continent: 'Europa',
-    //   country: 'Deutschland',
-    //   state: 'Sachsen',
-    //   town: 'Blankenhain',
-    //   adress: 'Am Schloss 7, 08451 Crimmitschau',
-    //   name: 'Schloss Blankenhain',
-    //   description: '...',
-    //   imagePath: 'lib/images/schloss.jpg',
-    //   latitude: 50.79964854352937,
-    //   longitude: 12.283992536778543,
-    //   entfernung: 0,
-    // ));
 
     _currentSelectedIndex = 0;
     _canUpdateFocalLatLng = true;
@@ -200,9 +165,9 @@ class LocationsPageState extends State<LocationsPage> {
 
           if (position != null) {
             setState(() {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text("Position aktualisiert!"),
-              ));
+              // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              //   content: Text("Position aktualisiert!"),
+              // ));
 
               try {
                 _currentPosition = position;
@@ -216,7 +181,9 @@ class LocationsPageState extends State<LocationsPage> {
                   town: _currentPlace?.locality ?? "",
                   adress:
                   "${_currentPlace?.street ?? ""}, ${_currentPlace?.postalCode ?? ""} ${_currentPlace?.locality ?? ""}",
-                  name: "Username",
+                  name:   customerDTo!=null && customerDTo?.firstName!=null && customerDTo!.firstName!.trim().isNotEmpty ?
+                  '${customerDTo?.firstName}'
+                      : "Unbekannter",
                   description: "Hier bist du!",
                   imagePath: 'lib/images/profilbild.jpg',
                   latitude: _currentPosition!.latitude,
@@ -226,10 +193,8 @@ class LocationsPageState extends State<LocationsPage> {
                 _mapController.updateMarkers([0]);
 
                 if (karteOhneGesuchteOrte) {
-
-                  _LocationDetails ort=getkleinsteEntfernung();
-                  if(_orteAnzeigenAufKarte[1]!=ort){
-
+                  _LocationDetails ort = getkleinsteEntfernung();
+                  if (_orteAnzeigenAufKarte[1] != ort) {
                     _orteAnzeigenAufKarte.removeAt(1);
                     _orteAnzeigenAufKarte.add(ort);
                     _mapController.updateMarkers([1]);
@@ -237,7 +202,8 @@ class LocationsPageState extends State<LocationsPage> {
                     List<_LocationDetails> list = _orteAnzeigenAufKarte;
                     list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
                     _LocationDetails median = getmedianEntfernung(list);
-                    print("Median: ${median.name} Entfernung: ${median.entfernung}");
+                    print(
+                        "Median: ${median.name} Entfernung: ${median.entfernung}");
 
                     getZoomLevel(median.entfernung);
                     _zoomPanBehavior.zoomLevel = zoomlevel;
@@ -245,29 +211,26 @@ class LocationsPageState extends State<LocationsPage> {
                     _zoomPanBehavior.focalLatLng = MapLatLng(
                         _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
                         _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
-
-                  }
-                  else{
+                  } else {
                     List<_LocationDetails> list = _orteAnzeigenAufKarte;
+                    list[1].entfernung = ort.entfernung;
                     list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
                     _LocationDetails median = getmedianEntfernung(list);
-                    print("Median: ${median.name} Entfernung: ${median.entfernung}");
+                    print(
+                        "Median: ${median.name} Entfernung: ${median.entfernung}");
 
                     getZoomLevel(median.entfernung);
                   }
-
                 } else {
-                  // List<_LocationDetails> list = _orteAnzeigenAufKarte;
-                  // for (_LocationDetails ort in list) {
-                  //   ort.entfernung=getEntfernung(ort);
-                  // }
-                  //
-                  // list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-                  // _LocationDetails median = getmedianEntfernung(list);
-                  // print("Median: ${median.name} Entfernung: ${median.entfernung}");
-                  //
-                  // getZoomLevel(median.entfernung);
-                  // _zoomPanBehavior.zoomLevel = zoomlevel;
+                  List<_LocationDetails> list = _orteAnzeigenAufKarte;
+                  for (_LocationDetails ort in list) {
+                    ort.entfernung = getEntfernung(ort);
+                  }
+
+                  list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+                  _LocationDetails median = getmedianEntfernung(list);
+                  print("Median: ${median.name} Entfernung: ${median.entfernung}");
+                  getZoomLevel(median.entfernung);
                 }
               } catch (e) {}
             });
@@ -311,26 +274,40 @@ class LocationsPageState extends State<LocationsPage> {
               town: _currentPlace?.locality ?? "",
               adress:
               "${_currentPlace?.street ?? ""}, ${_currentPlace?.postalCode ?? ""} ${_currentPlace?.locality ?? ""}",
-              name: "Username",
+              name:   customerDTo!=null && customerDTo?.firstName!=null && customerDTo!.firstName!.trim().isNotEmpty ?
+              '${customerDTo?.firstName}'
+                  : "Unbekannter",
               description: "Hier bist du!",
               imagePath: 'lib/images/profilbild.jpg',
               latitude: _currentPosition!.latitude,
               longitude: _currentPosition!.longitude,
               entfernung: 0,
             ));
-            _orteAnzeigenAufKarte.add(getkleinsteEntfernung());
 
-            List<_LocationDetails> list = _orteAnzeigenAufKarte;
-            list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-            _LocationDetails median = getmedianEntfernung(list);
-            print("Median: ${median.name} Entfernung: ${median.entfernung}");
+            if (_orte.isNotEmpty) {
+              _orteAnzeigenAufKarte.add(getkleinsteEntfernung());
 
-            getZoomLevel(median.entfernung);
-            _zoomPanBehavior.zoomLevel = zoomlevel;
-            _currentSelectedIndex = 1;
+              List<_LocationDetails> list = _orteAnzeigenAufKarte;
+              list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+              _LocationDetails median = getmedianEntfernung(list);
+              print("Median: ${median.name} Entfernung: ${median.entfernung}");
+
+              getZoomLevel(median.entfernung);
+              _zoomPanBehavior.zoomLevel = zoomlevel;
+              _currentSelectedIndex = 1;
+            } else {
+              positionsMeldung = "";
+              positionsMeldung +=
+              "Es konnten keine Orte geladen werden!";
+              zoomlevel = 14;
+              _zoomPanBehavior.zoomLevel = zoomlevel;
+              _currentSelectedIndex = 0;
+            }
           } else {
             print("Standort steht nicht zur Verfügung!");
-            _orteAnzeigenAufKarte.add(_orte[0]);
+            if (_orte.isNotEmpty) {
+              _orteAnzeigenAufKarte.add(_orte[0]);
+            }
             zoomlevel = 14;
             _zoomPanBehavior.zoomLevel = zoomlevel;
             _currentSelectedIndex = 0;
@@ -365,9 +342,19 @@ class LocationsPageState extends State<LocationsPage> {
           _mapController.insertMarker(i);
         }
 
-        _zoomPanBehavior.focalLatLng = MapLatLng(
-            _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
-            _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
+        if (_orteAnzeigenAufKarte.isNotEmpty) {
+          _zoomPanBehavior.focalLatLng = MapLatLng(
+              _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
+              _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
+        } else {
+          if (positionsMeldungFertig == false) {
+            positionsMeldung +=
+            "\nEs konnten keine Orte geladen werden!";
+            positionsMeldungFertig = true;
+          }
+          _zoomPanBehavior.focalLatLng =
+              MapLatLng(51.340998335285256, 12.38561607611925);
+        }
 
         mapLoaded = true;
       }
@@ -407,9 +394,11 @@ class LocationsPageState extends State<LocationsPage> {
                   height: (MediaQuery.of(context).orientation ==
                       Orientation.portrait)
                       ? MediaQuery.of(context).size.height * 0.91 -
-                      MediaQuery.of(context).padding.top-1
+                      MediaQuery.of(context).padding.top -
+                      1
                       : MediaQuery.of(context).size.height * 0.84 -
-                      MediaQuery.of(context).padding.top-1,
+                      MediaQuery.of(context).padding.top -
+                      1,
                   //color: Colors.greenAccent,
                   child: Column(
                     mainAxisSize: MainAxisSize.max,
@@ -419,7 +408,7 @@ class LocationsPageState extends State<LocationsPage> {
                           Orientation.portrait)
                           ? Column(
                         children: [
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.only(
                                 top: 25, left: 18, right: 18, bottom: 5),
                             child: Row(
@@ -427,7 +416,6 @@ class LocationsPageState extends State<LocationsPage> {
                                 Text(
                                   "Standorte",
                                   style: TextStyle(
-                                    height: 0,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black,
                                     fontSize: 25,
@@ -436,19 +424,27 @@ class LocationsPageState extends State<LocationsPage> {
                               ],
                             ),
                           ),
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.only(
                                 top: 0, left: 18, right: 18, bottom: 10),
-                            child: Row(
+                            child:
+
+                            Row(
                               mainAxisSize: MainAxisSize.max,
                               children: [
-                                Text(
-                                  'Hallo, Max.',
-                                  style: TextStyle(
-                                    height: 0,
-                                    fontWeight: FontWeight.normal,
-                                    color: Colors.grey,
-                                    fontSize: 20,
+
+                                Expanded(
+                                  child: Text(
+                                    customerDTo!=null && customerDTo?.firstName!=null && customerDTo!.firstName!.trim().isNotEmpty ?
+                                    'Hallo, ${customerDTo?.firstName}'
+                                        : "Hallo, Unbekannter",
+                                    softWrap: true,
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      color: Colors.grey,
+                                      fontSize: 20,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -477,7 +473,7 @@ class LocationsPageState extends State<LocationsPage> {
                               mainAxisAlignment:
                               MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   "Standorte",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -583,10 +579,8 @@ class LocationsPageState extends State<LocationsPage> {
                                                         index]
                                                             .longitude);
 
-                                                // _zoomPanBehavior.zoomLevel =
-                                                //     zoomlevel;
-
-                                                if (_zoomPanBehavior.zoomLevel < 14) {
+                                                if (_zoomPanBehavior.zoomLevel <
+                                                    14) {
                                                   print(
                                                       "Das Zoomlevel wurde auf 14 gestellt!");
                                                   _zoomPanBehavior.zoomLevel =
@@ -609,6 +603,8 @@ class LocationsPageState extends State<LocationsPage> {
                                       ),
                                     ],
                                   ),
+
+                                  _orteAnzeigenAufKarte.isNotEmpty ?
                                   Align(
                                     alignment: Alignment.bottomCenter,
                                     child: Container(
@@ -661,7 +657,8 @@ class LocationsPageState extends State<LocationsPage> {
                                                           _orteAnzeigenAufKarte[
                                                           _currentSelectedIndex]
                                                               .longitude);
-                                                  _zoomPanBehavior.zoomLevel = zoomlevel;
+                                                  _zoomPanBehavior.zoomLevel =
+                                                      zoomlevel;
                                                 },
                                                 child: Container(
                                                   padding: const EdgeInsets.all(
@@ -710,11 +707,8 @@ class LocationsPageState extends State<LocationsPage> {
                                                                   TextAlign
                                                                       .start),
                                                               Text(
-                                                                  (_currentPlace ==
-                                                                      null &&
-                                                                      index ==
-                                                                          0)
-                                                                      ? ""
+                                                                  ( (_currentPlace == null && index == 0) || item.town.isEmpty || item.state.isEmpty || item.country.isEmpty)
+                                                                      ? " "
                                                                       : "(${item.town}, ${item.state}, ${item.country})",
                                                                   // maxLines: 1,
                                                                   softWrap: true,
@@ -732,7 +726,7 @@ class LocationsPageState extends State<LocationsPage> {
                                                                       .start),
                                                               const SizedBox(
                                                                   height: 3),
-                                                              Text(item.adress,
+                                                              Text(item.adress.isEmpty ? " " : item.adress,
                                                                   softWrap: true,
                                                                   style: TextStyle(
                                                                       height: 0,
@@ -797,7 +791,8 @@ class LocationsPageState extends State<LocationsPage> {
                                         },
                                       ),
                                     ),
-                                  ),
+                                  )
+                                      : Container(),
                                   positionsMeldung.isNotEmpty
                                       ? Container(
                                     color: Colors.grey[200],
@@ -896,7 +891,8 @@ class LocationsPageState extends State<LocationsPage> {
                   size: 100,
                 ),
               ),
-              const Text("Standort nicht verfügbar!",
+              Text(
+                  'Ihr Standort wird ermittelt...',
                   softWrap: true,
                   style: TextStyle(
                       height: 0, fontWeight: FontWeight.bold, fontSize: 18),
@@ -939,10 +935,10 @@ class LocationsPageState extends State<LocationsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     getPositionsmeldung(),
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(bottom: 2),
                       child: Text(
-                       "ERGEBNISSE",
+                        "ERGEBNISSE",
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           color: Colors.black,
@@ -951,7 +947,7 @@ class LocationsPageState extends State<LocationsPage> {
                       ),
                     ),
                     _orteAnzeigenInListe.isEmpty
-                        ? const Padding(
+                        ? Padding(
                       padding: EdgeInsets.only(bottom: 5),
                       child: Text("Nichts gefunden!"),
                     )
@@ -1106,12 +1102,10 @@ class LocationsPageState extends State<LocationsPage> {
     /// marker is directly clicked, only the respective card should be moved to
     /// center and the marker itself should not move to the center of the maps.
     if (_canUpdateFocalLatLng) {
-      print("pagechange");
       _zoomPanBehavior.focalLatLng = MapLatLng(
           _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
           _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
-      //_zoomPanBehavior.zoomLevel = zoomlevel;
-
+      // _zoomPanBehavior.zoomLevel = zoomlevel;
     }
 
     /// Updating the design of the selected marker. Please check the
@@ -1265,7 +1259,7 @@ class LocationsPageState extends State<LocationsPage> {
                 color: Colors.black,
                 size: 20,
               )),
-          hintText: "Suche...",
+          hintText: 'Suche...',
         ),
       ),
     );
@@ -1342,7 +1336,7 @@ class LocationsPageState extends State<LocationsPage> {
               borderRadius: BorderRadius.circular(10),
               color: Colors.grey,
             ),
-            child: const Text(
+            child: Text(
               "Alle Ergebnisse",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
@@ -1361,6 +1355,12 @@ class LocationsPageState extends State<LocationsPage> {
   Future<void> getPositionAndAdress() async {
     await _getCurrentPosition();
     await _getAddressFromLatLng(_currentPosition!);
+
+    PersistenceUtil.getCustomer().then((value) => setState(() {
+      customerDTo=value;
+      // Update your UI with the desired changes.
+    }));
+
   }
 
   Future<void> _getCurrentPosition() async {
@@ -1379,7 +1379,7 @@ class LocationsPageState extends State<LocationsPage> {
     }).catchError((e) {
       print("Zeitüberschreitung bei der Positionsbestimmung!");
       positionsMeldung =
-      "Standort nicht verfügbar!";
+      "Ihr Standort konnte nicht bestimmt werden...!";
     });
   }
 
@@ -1402,7 +1402,7 @@ class LocationsPageState extends State<LocationsPage> {
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       positionsMeldung =
-      "Standort nicht verfügbar!";
+      'Der Standort ist deaktiviert... Bitte Aktivieren sie die Dienste!';
       print("Meldung: $positionsMeldung");
 
       return false;
@@ -1413,14 +1413,14 @@ class LocationsPageState extends State<LocationsPage> {
           .onError((error, stackTrace) => LocationPermission.unableToDetermine);
       if (permission == LocationPermission.denied) {
         positionsMeldung =
-        "Standort nicht verfügbar!";
+        'Standortberechtigungen wurden verweigert!';
         print("Meldung: $positionsMeldung");
         return false;
       }
     }
     if (permission == LocationPermission.deniedForever) {
       positionsMeldung =
-      "Standort nicht verfügbar!";
+      'Standortberechtigungen wurden dauerhaft verweigert, es kann nicht nach Berechtigungen gefragt werden.';
       print("Meldung: $positionsMeldung");
 
       return false;
@@ -1598,35 +1598,27 @@ class _LocationDetails {
   final double longitude;
   double entfernung;
 
-
   @override
   bool operator ==(Object other) {
-
     if (identical(this, other)) {
-
       return true;
-
     }
 
-    return (other is _LocationDetails
-
-        && other.runtimeType == runtimeType
-        && other.continent == continent
-        && other.country == country
-        && other.state == state
-        && other.town == town
-        && other.adress == adress
-        && other.name == name
-        && other.description== description
-        && other.latitude == latitude
-        && other.longitude == longitude
-
-    );
-
+    return (other is _LocationDetails &&
+        other.runtimeType == runtimeType &&
+        other.continent == continent &&
+        other.country == country &&
+        other.state == state &&
+        other.town == town &&
+        other.adress == adress &&
+        other.name == name &&
+        other.description == description &&
+        other.latitude == latitude &&
+        other.longitude == longitude);
   }
 
   @override
   // TODO: implement hashCode
-  int get hashCode => Object.hash(continent, country, state, town, adress, name, description, latitude, longitude);
-
+  int get hashCode => Object.hash(continent, country, state, town, adress, name,
+      description, latitude, longitude);
 }

@@ -1,23 +1,24 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:map_app/CustomerDto.dart';
-import 'package:map_app/PersistenceUtil.dart';
 
 import 'BottomNavigationBar.dart';
-import 'RegistrationPage.dart';
+import 'CustomerDto.dart';
+import 'LoginPage.dart';
 import 'TextInput.dart';
 import 'WrapperPageState.dart';
+import 'PersistenceUtil.dart';
 
-class LoginPage extends StatefulWidget {
+class RegistrationPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return LoginPageState();
+    return RegistrationpageState();
   }
 }
 
-class LoginPageState extends WrapperPageState<LoginPage> {
+class RegistrationpageState extends WrapperPageState<RegistrationPage> {
   TextEditingController emailController = TextEditingController();
+  TextEditingController firstnameController = TextEditingController();
+  TextEditingController lastnameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   @override
   Widget getContent() {
@@ -31,7 +32,7 @@ class LoginPageState extends WrapperPageState<LoginPage> {
               alignment: Alignment.center,
               width: double.infinity,
               child: Text(
-                "Sie haben bereits ein Konto? Melden Sie sich jetzt an",
+                "Konto erstellen",
                 style: const TextStyle(
                     fontSize: 30,
                     color: Color(0xFF2F1155),
@@ -46,7 +47,22 @@ class LoginPageState extends WrapperPageState<LoginPage> {
                 controller: emailController,
                 icon: const Icon(Icons.email),
               )),
-
+          Container(
+              margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+              child: TextInput(
+                label: "Vorname",
+                obscureText: false,
+                controller: firstnameController,
+                icon: const Icon(Icons.person),
+              )),
+          Container(
+              margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+              child: TextInput(
+                label: "Nachname",
+                obscureText: false,
+                controller: lastnameController,
+                icon: const Icon(Icons.person),
+              )),
           Container(
               margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),
               child: TextInput(
@@ -58,7 +74,7 @@ class LoginPageState extends WrapperPageState<LoginPage> {
           Container(
             margin: const EdgeInsets.only(top: 20),
             child: ElevatedButton(
-              onPressed: () {login();},
+              onPressed: () {register();},
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.fromLTRB(30, 20, 30, 20),
                 textStyle: const TextStyle(fontSize: 20),
@@ -67,61 +83,49 @@ class LoginPageState extends WrapperPageState<LoginPage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: Text("Anmelden"),
+              child: Text("Konto erstellen"),
             ),
           ),
           Container(
               margin: const EdgeInsets.only(top: 20),
-              child: Text("Haben Sie doch kein Konto?")),
+              child: Text("Haben Sie ein Konto?")),
           Container(
               margin: const EdgeInsets.only(top: 5),
               child: InkWell(
                 child: Text(
-                  "Zurück",
+                  "Anmelden",
                   style: const TextStyle(color: Color(0xFF0000FF)),
                 ),
                 onTap: () {
                   Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => RegistrationPage()));
+                      MaterialPageRoute(builder: (context) => LoginPage()));
                 },
               ))
         ],
-    ),
+        ),
       );
   }
 
-  login() async {
+  register() async {
 
-    CustomerDto? custDTO = await PersistenceUtil.getCustomer();
+    if(firstnameController.text.trim().isNotEmpty && lastnameController.text.trim().isNotEmpty && emailController.text.trim().isNotEmpty && passwordController.text.trim().isNotEmpty) {
 
-    if(custDTO != null){
+      CustomerDto customerDto = CustomerDto(firstName: firstnameController.text, lastName: lastnameController.text, email: emailController.text, password: passwordController.text);
 
-      if(custDTO.email?.compareTo(emailController.text.trim()) == 0 && custDTO.password?.compareTo(passwordController.text.trim()) == 0 ){
-
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("Success"),
-        ));
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const BottomNavBar()));
-
-      }
-      else{
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("Error"),
-        ));
-
-      }
-
-    }
-    else{
+      await PersistenceUtil.setCustomer(customerDto);
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("No CustomerDTO"),
+        content: Text("Success"),
       ));
-
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => const BottomNavBar()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Error"),
+      ));
     }
 
   }
-
 }
+
 
