@@ -51,6 +51,7 @@ class LocationsPageState extends State<LocationsPage> {
   late PageController _pageViewController;
   bool updatePageviewsSelectedPage = false;
   late double _cardHeight;
+  int anzalnaehsterOrte = 2;
 
   LocationSettings locationSettings = const LocationSettings(
     accuracy: LocationAccuracy.high, //accuracy of the location data
@@ -145,6 +146,8 @@ class LocationsPageState extends State<LocationsPage> {
       entfernung: 0,
     ));
 
+    get100orte();
+
     _currentSelectedIndex = 0;
     _canUpdateFocalLatLng = true;
     _mapController = MapTileLayerController();
@@ -193,34 +196,52 @@ class LocationsPageState extends State<LocationsPage> {
                 _mapController.updateMarkers([0]);
 
                 if (karteOhneGesuchteOrte) {
-                  _LocationDetails ort = getkleinsteEntfernung();
-                  if (_orteAnzeigenAufKarte[1] != ort) {
-                    _orteAnzeigenAufKarte.removeAt(1);
-                    _orteAnzeigenAufKarte.add(ort);
-                    _mapController.updateMarkers([1]);
+                  _LocationDetails ort = _orteAnzeigenAufKarte[_currentSelectedIndex];
 
-                    List<_LocationDetails> list = _orteAnzeigenAufKarte;
-                    list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-                    _LocationDetails median = getmedianEntfernung(list);
-                    print(
-                        "Median: ${median.name} Entfernung: ${median.entfernung}");
+                  _orteAnzeigenAufKarte.removeRange(1,_orteAnzeigenAufKarte.length);
 
-                    getZoomLevel(median.entfernung);
-                    _zoomPanBehavior.zoomLevel = zoomlevel;
+                 getkleinsteEntfernung();
+
+
+                  int index=_orteAnzeigenAufKarte.indexOf(ort);
+                  if(index!= -1 && index != _currentSelectedIndex){
+                    updatePageviewsSelectedPage =true;
+                    _currentSelectedIndex=index;
+                    print("Currentselected Index ändert sich!");
+                  }
+                  else if(index == -1){
+
+                    if(_orteAnzeigenAufKarte.length>=2){
+                      _currentSelectedIndex=1;
+                    }
+                    else if(_orteAnzeigenAufKarte.length == 1){
+
+                      _currentSelectedIndex=0;
+                    }
+                    updatePageviewsSelectedPage =true;
 
                     _zoomPanBehavior.focalLatLng = MapLatLng(
-                        _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
-                        _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
-                  } else {
-                    List<_LocationDetails> list = _orteAnzeigenAufKarte;
-                    list[1].entfernung = ort.entfernung;
-                    list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-                    _LocationDetails median = getmedianEntfernung(list);
+                           _orteAnzeigenAufKarte[_currentSelectedIndex].latitude,
+                           _orteAnzeigenAufKarte[_currentSelectedIndex].longitude);
+
+                    _zoomPanBehavior.zoomLevel = zoomlevel;
+
+                    print("Currentselected Index auf 1 gesetzt!");
+
+                  }
+
+                  List<int> indicies = <int>[];
+                  for (int i = 1; i < _orteAnzeigenAufKarte.length; i++) {
+                        indicies.add(i);
+                  }
+                  _mapController.updateMarkers(indicies);
+
+                    _LocationDetails median = getmedianEntfernung(_orteAnzeigenAufKarte);
                     print(
                         "Median: ${median.name} Entfernung: ${median.entfernung}");
 
                     getZoomLevel(median.entfernung);
-                  }
+
                 } else {
                   List<_LocationDetails> list = _orteAnzeigenAufKarte;
                   for (_LocationDetails ort in list) {
@@ -285,16 +306,24 @@ class LocationsPageState extends State<LocationsPage> {
             ));
 
             if (_orte.isNotEmpty) {
-              _orteAnzeigenAufKarte.add(getkleinsteEntfernung());
 
-              List<_LocationDetails> list = _orteAnzeigenAufKarte;
-              list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-              _LocationDetails median = getmedianEntfernung(list);
-              print("Median: ${median.name} Entfernung: ${median.entfernung}");
+              getkleinsteEntfernung();
+
+              if(_orteAnzeigenAufKarte.length>=2){
+                _currentSelectedIndex=1;
+              }
+              else if(_orteAnzeigenAufKarte.length == 1){
+
+                _currentSelectedIndex=0;
+              }
+
+              _LocationDetails median = getmedianEntfernung(_orteAnzeigenAufKarte);
+              print(
+                  "Median: ${median.name} Entfernung: ${median.entfernung}");
 
               getZoomLevel(median.entfernung);
               _zoomPanBehavior.zoomLevel = zoomlevel;
-              _currentSelectedIndex = 1;
+
             } else {
               positionsMeldung = "";
               positionsMeldung +=
@@ -316,7 +345,9 @@ class LocationsPageState extends State<LocationsPage> {
           print("Es wird die Karte mit gesuchten Orten geladen!");
 
           if (isLocationavailable()) {
-            _orteAnzeigenAufKarte.removeLast();
+
+            _orteAnzeigenAufKarte.removeRange(1,_orteAnzeigenAufKarte.length);
+
           } else {
             _orteAnzeigenAufKarte.clear();
             zoomlevel = 14;
@@ -328,14 +359,14 @@ class LocationsPageState extends State<LocationsPage> {
           }
 
           if (isLocationavailable()) {
-            List<_LocationDetails> list = _orteAnzeigenAufKarte;
-            list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-            _LocationDetails median = getmedianEntfernung(list);
+
+            _LocationDetails median = getmedianEntfernung(_orteAnzeigenAufKarte);
             print("Median: ${median.name} Entfernung: ${median.entfernung}");
 
             getZoomLevel(median.entfernung);
             _zoomPanBehavior.zoomLevel = zoomlevel;
           }
+
         }
 
         for (var i = 0; i < _orteAnzeigenAufKarte.length; i++) {
@@ -411,47 +442,123 @@ class LocationsPageState extends State<LocationsPage> {
                           Padding(
                             padding: EdgeInsets.only(
                                 top: 25, left: 18, right: 18, bottom: 5),
+
                             child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  "Standorte",
-                                  style: TextStyle(
-                                    height: 0,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                    fontSize: 25,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                                top: 0, left: 18, right: 18, bottom: 10),
-                            child:
-
-                            Row(
-                              mainAxisSize: MainAxisSize.max,
-                              children: [
-
+                                
                                 Expanded(
                                   child: Text(
-                                    customerDTo!=null && customerDTo?.firstName!=null && customerDTo!.firstName!.trim().isNotEmpty ?
-                                    'Hallo, ${customerDTo?.firstName}'
-                                        : "Hallo, Unbekannter",
-                                    softWrap: true,
-                                    maxLines: 1,
+                                    "Standorte",
+                                    textAlign: TextAlign.start,
                                     style: TextStyle(
                                       height: 0,
-                                      fontWeight: FontWeight.normal,
-                                      color: Colors.grey,
-                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                      fontSize: 25,
                                     ),
                                   ),
                                 ),
+
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 30),
+                                  child: Column(
+                                    children: [
+
+                                      Row(children: [
+
+                                        GestureDetector(
+                                          onTap: () {
+
+                                            if(anzalnaehsterOrte>0){
+                                              setState(() {
+
+                                                anzalnaehsterOrte--;
+
+                                                mapLoaded = false;
+                                                karteOhneGesuchteOrte = true;
+                                                updatePageviewsSelectedPage = true;
+
+
+                                              });
+
+                                            }
+
+
+                                          },
+
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                border: Border.all(color: Colors.black)
+                                            ),
+                                            child: Icon(Icons.arrow_left_outlined,size: 40,),),
+                                        ),
+
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.symmetric( vertical: BorderSide(color: Colors.black,width: 2), horizontal: BorderSide(color: Colors.black,width: 2) ),
+                                          ),
+                                          margin: EdgeInsets.symmetric(horizontal: 5),
+                                          padding: EdgeInsets.all(10),
+                                          child: Text(anzalnaehsterOrte.toString(),
+                                            softWrap: true,
+                                            maxLines: 1,
+                                            style: TextStyle(
+                                              height: 0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                        ),
+
+                                        GestureDetector(
+                                          onTap: () {
+
+                                            if(anzalnaehsterOrte<_orte.length){
+                                              setState(() {
+
+                                                anzalnaehsterOrte++;
+
+                                                mapLoaded = false;
+                                                karteOhneGesuchteOrte = true;
+                                                updatePageviewsSelectedPage = true;
+
+                                              });
+
+                                            }
+
+
+                                          },
+
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                border: Border.all(color: Colors.black)
+                                            ),
+                                            child: Icon(Icons.arrow_right_outlined,size: 40,),),
+                                        )
+
+
+                                      ],),
+
+                                      Text("Anzahl Orte",
+                                        softWrap: true,
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          height: 0,
+                                          fontWeight: FontWeight.normal,
+                                          color: Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+
+                                    ],),
+                                )
+
                               ],
                             ),
                           ),
+
                           Padding(
                             padding: const EdgeInsets.only(
                                 left: 18, right: 18, bottom: 0),
@@ -917,7 +1024,7 @@ class LocationsPageState extends State<LocationsPage> {
 
         return Padding(
           padding: (MediaQuery.of(context).orientation == Orientation.portrait)
-              ? const EdgeInsets.only(top: 150)
+              ? const EdgeInsets.only(top: 145)
               : const EdgeInsets.only(top: 60),
           child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.8,
@@ -1234,7 +1341,11 @@ class LocationsPageState extends State<LocationsPage> {
           ),
           prefixIcon: GestureDetector(
             onTap: () {
-              //await _getCurrentPosition();
+
+              mapLoaded = false;
+              karteOhneGesuchteOrte = true;
+              updatePageviewsSelectedPage = true;
+
               starteSuche(fieldText.text);
             },
             child: const Icon(
@@ -1288,10 +1399,9 @@ class LocationsPageState extends State<LocationsPage> {
     }
 
     setState(() {
-      mapLoaded = false;
-      karteOhneGesuchteOrte = true;
+
       showAllResults = false;
-      updatePageviewsSelectedPage = true;
+
     });
   }
 
@@ -1477,18 +1587,6 @@ class LocationsPageState extends State<LocationsPage> {
     return distance / 1000;
   }
 
-  double berechneEntfernung(int index) {
-    double lat1 = _currentPosition?.latitude ?? 0;
-    double lon1 = _currentPosition?.longitude ?? 0;
-
-    double lat2 = _orte[index].latitude;
-    double lon2 = _orte[index].longitude;
-
-    double distance = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
-
-    return distance / 1000;
-  }
-
   double roundDouble(double value, int places) {
     num mod = pow(10.0, places);
     return ((value * mod).round().toDouble() / mod);
@@ -1516,59 +1614,68 @@ class LocationsPageState extends State<LocationsPage> {
     }
   }
 
-  _LocationDetails getkleinsteEntfernung() {
-    double kleinsteentfernung = 0;
-    _LocationDetails d = _LocationDetails(
-      continent: "",
-      country: "",
-      state: "",
-      town: "",
-      adress: "",
-      name: "",
-      description: "",
-      imagePath: "",
-      latitude: 0,
-      longitude: 0,
-      entfernung: 0,
-    );
+   getkleinsteEntfernung() {
+    List<_LocationDetails> locations =[..._orte];
 
-    for (var i = 0; i < _orte.length; i++) {
-      double entfernung = berechneEntfernung(i);
-      if (i == 0) {
-        kleinsteentfernung = entfernung;
-        _LocationDetails locationListe = _orte[i];
-        d = _LocationDetails(
-            continent: locationListe.continent,
-            country: locationListe.country,
-            state: locationListe.state,
-            town: locationListe.town,
-            adress: locationListe.adress,
-            name: locationListe.name,
-            description: locationListe.description,
-            imagePath: locationListe.imagePath,
-            latitude: locationListe.latitude,
-            longitude: locationListe.longitude,
-            entfernung: entfernung);
-      } else {
-        if (entfernung < kleinsteentfernung) {
-          kleinsteentfernung = entfernung;
-          _LocationDetails locationListe = _orte[i];
-          d = _LocationDetails(
-              continent: locationListe.continent,
-              country: locationListe.country,
-              state: locationListe.state,
-              town: locationListe.town,
-              adress: locationListe.adress,
-              name: locationListe.name,
-              description: locationListe.description,
-              imagePath: locationListe.imagePath,
-              latitude: locationListe.latitude,
-              longitude: locationListe.longitude,
-              entfernung: kleinsteentfernung);
-        }
-      }
+    for (_LocationDetails ort in locations) {
+      ort.entfernung = getEntfernung(ort);
     }
-    return d;
+    locations.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+
+    for (int i = 0; i < anzalnaehsterOrte; i++) {
+      _orteAnzeigenAufKarte.add(locations[i]);
+    }
+
+  }
+
+  void get100orte() {
+
+    // _orte.add(_LocationDetails(
+    //   continent: 'Europa',
+    //   country: 'Deutschland',
+    //   state: '',
+    //   town: '',
+    //   adress: '',
+    //   name: '',
+    //   description: 'beschreibung',
+    //   imagePath: 'lib/images/',
+    //   latitude: ,
+    //   longitude: ,
+    //   entfernung: 0,
+    // ));
+
+    _orte.add(_LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Baden-Württemberg',
+      town: 'Rust',
+      adress: 'Europa-Park-Straße 2, 77977 Rust',
+      name: 'Europa-Park',
+      description: 'beschreibung',
+      imagePath: 'lib/images/1.jpg',
+      latitude: 48.26619791837234,
+      longitude:7.721943223642954,
+      entfernung: 0,
+    ));
+
+    _orte.add(_LocationDetails(
+      continent: 'Europa',
+      country: 'Deutschland',
+      state: 'Hamburg',
+      town: 'Hamburg',
+      adress: 'Kehrwieder 2/Block D, 20457 Hamburg',
+      name: 'Miniatur Wunderland',
+      description: 'beschreibung',
+      imagePath: 'lib/images/2.jpg',
+      latitude: 53.54399537873123,
+      longitude: 9.989068729501286,
+      entfernung: 0,
+    ));
+
+
+
+
+
   }
 }
 
