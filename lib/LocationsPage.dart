@@ -27,7 +27,9 @@ class LocationsPageState extends State<LocationsPage> {
   bool standortErmittelt = false;
   bool mapLoaded = false;
 
+  bool showSearchlist = false;
   final int maxSearchList = 3;
+  bool showAllResults = false;
 
   List<_LocationDetails> _orte = <_LocationDetails>[];
   List<_LocationDetails> _orteGefunden = <_LocationDetails>[];
@@ -35,7 +37,7 @@ class LocationsPageState extends State<LocationsPage> {
   late List<_LocationDetails> _orteAnzeigenAufKarte;
 
   bool karteOhneGesuchteOrte = true;
-  bool showAllResults = false;
+
 
   final fieldText = TextEditingController();
   final srollcontroller = ScrollController();
@@ -243,15 +245,25 @@ class LocationsPageState extends State<LocationsPage> {
                     getZoomLevel(median.entfernung);
 
                 } else {
-                  List<_LocationDetails> list = _orteAnzeigenAufKarte;
-                  for (_LocationDetails ort in list) {
+
+                  for (_LocationDetails ort in _orteAnzeigenAufKarte) {
                     ort.entfernung = getEntfernung(ort);
                   }
 
-                  list.sort((a, b) => a.entfernung.compareTo(b.entfernung));
-                  _LocationDetails median = getmedianEntfernung(list);
+                  _LocationDetails ort = _orteAnzeigenAufKarte[_currentSelectedIndex];
+                  _orteAnzeigenAufKarte.sort((a, b) => a.entfernung.compareTo(b.entfernung));
+                  int index = _orteAnzeigenAufKarte.indexOf(ort);
+
+                  if (index != -1 && index != _currentSelectedIndex) {
+                    updatePageviewsSelectedPage = true;
+                    _currentSelectedIndex = index;
+                    print("Currentselected Index ändert sich!");
+                  }
+
+                  _LocationDetails median = getmedianEntfernung(_orteAnzeigenAufKarte);
                   print("Median: ${median.name} Entfernung: ${median.entfernung}");
                   getZoomLevel(median.entfernung);
+
                 }
               } catch (e) {}
             });
@@ -957,7 +969,7 @@ class LocationsPageState extends State<LocationsPage> {
                                             color: Colors.grey[400],
                                           ),
                                           child: Text(
-                                            "${roundDouble(getEntfernung(_orteAnzeigenAufKarte.elementAt(_currentSelectedIndex)), 2)} km",
+                                            "${roundDouble(_orteAnzeigenAufKarte.elementAt(_currentSelectedIndex).entfernung, 2)} km",
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
@@ -1014,7 +1026,7 @@ class LocationsPageState extends State<LocationsPage> {
   }
 
   Widget getSuchListe() {
-    if (karteOhneGesuchteOrte) {
+    if (showSearchlist) {
       if (this.fieldText.value.text.trim().isEmpty) {
         print("Suchfeld leer!");
         this.fieldText.clear();
@@ -1077,6 +1089,7 @@ class LocationsPageState extends State<LocationsPage> {
                                   _currentSelectedIndex = index;
                                 }
 
+                                showSearchlist = false;
                                 mapLoaded = false;
                                 karteOhneGesuchteOrte = false;
                                 updatePageviewsSelectedPage = true;
@@ -1320,10 +1333,15 @@ class LocationsPageState extends State<LocationsPage> {
         maxLength: 25,
         textInputAction: TextInputAction.search,
         onChanged: (value) {
+          showSearchlist = true;
           starteSuche(value);
         },
         onSubmitted: (value) {
-          // await _getCurrentPosition();
+
+          showSearchlist = true;
+          mapLoaded = false;
+          karteOhneGesuchteOrte= true;
+          updatePageviewsSelectedPage = true;
           starteSuche(value);
         },
         decoration: InputDecoration(
@@ -1342,6 +1360,7 @@ class LocationsPageState extends State<LocationsPage> {
           prefixIcon: GestureDetector(
             onTap: () {
 
+              showSearchlist = true;
               mapLoaded = false;
               karteOhneGesuchteOrte = true;
               updatePageviewsSelectedPage = true;
@@ -1359,6 +1378,7 @@ class LocationsPageState extends State<LocationsPage> {
                 print("Suchfeld gecleart!");
                 //await _getCurrentPosition();
                 setState(() {
+                  showSearchlist = false;
                   karteOhneGesuchteOrte = true;
                   showAllResults = false;
                   mapLoaded = false;
