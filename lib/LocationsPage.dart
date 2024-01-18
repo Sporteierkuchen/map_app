@@ -54,6 +54,8 @@ class LocationsPageState extends State<LocationsPage> {
   bool updatePageviewsSelectedPage = false;
   late double _cardHeight;
   int anzalnaehsterOrte = 2;
+  bool doPageChange = true;
+
 
   LocationSettings locationSettings = const LocationSettings(
     accuracy: LocationAccuracy.high, //accuracy of the location data
@@ -659,6 +661,7 @@ class LocationsPageState extends State<LocationsPage> {
 
                                         markerBuilder:
                                             (BuildContext context, int index) {
+
                                           final double markerSize =
                                           _currentSelectedIndex == index
                                               ? 40
@@ -1093,6 +1096,7 @@ class LocationsPageState extends State<LocationsPage> {
                                 mapLoaded = false;
                                 karteOhneGesuchteOrte = false;
                                 updatePageviewsSelectedPage = true;
+                                doPageChange = false;
                               });
                             },
                             child: Container(
@@ -1202,18 +1206,32 @@ class LocationsPageState extends State<LocationsPage> {
     /// center and the marker itself should not move to the center of the maps.
     ///
     ///
-    print("page change!");
-    if (!_canUpdateFocalLatLng) {
-      if (_tappedMarkerIndex == index) {
-        _updateSelectedCard(index);
-      }
-    } else if (_canUpdateFocalLatLng) {
-      _updateSelectedCard(index);
-    }
+
+   if(doPageChange) {
+
+
+     print("Page change!");
+     if (!_canUpdateFocalLatLng) {
+       if (_tappedMarkerIndex == index) {
+         print("Es wurde zu einem anderen Marker geklickt!");
+         _updateSelectedCard(index);
+       }
+       else{
+         print("Es passiert nichts!");
+       }
+     } else if (_canUpdateFocalLatLng) {
+       print("Es wurde zu einer anderen Pageview Card geswiped!");
+       _updateSelectedCard(index);
+     }
+
+
+   }
+   doPageChange = true;
+
   }
 
   void _updateSelectedCard(int index) {
-    print("update selected card!");
+    print("Update Selected Card!");
     setState(() {
       _previousSelectedIndex = _currentSelectedIndex;
       _currentSelectedIndex = index;
