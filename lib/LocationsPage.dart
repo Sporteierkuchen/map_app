@@ -1085,6 +1085,10 @@ class LocationsPageState extends State<LocationsPage> {
                               print(
                                   "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
 
+                              if(anzalnaehsterOrte >1 && anzalnaehsterOrte <= index ){
+                                doPageChange = false;
+                              }
+
                               setState(() {
                                 if (isLocationavailable()) {
                                   _currentSelectedIndex = index + 1;
@@ -1096,7 +1100,7 @@ class LocationsPageState extends State<LocationsPage> {
                                 mapLoaded = false;
                                 karteOhneGesuchteOrte = false;
                                 updatePageviewsSelectedPage = true;
-                                doPageChange = false;
+
                               });
                             },
                             child: Container(
@@ -1207,26 +1211,27 @@ class LocationsPageState extends State<LocationsPage> {
     ///
     ///
 
-   if(doPageChange) {
+    if(doPageChange) {
 
+      print("Page change!");
+      if (!_canUpdateFocalLatLng) {
+        if (_tappedMarkerIndex == index) {
+          print("Es wurde zu einem anderen Marker geklickt!");
+          _updateSelectedCard(index);
+        }
+        else{
+          print("Es passiert nichts!");
+        }
+      } else if (_canUpdateFocalLatLng) {
+        print("Es wurde zu einer anderen Pageview Card geswiped!");
+        _updateSelectedCard(index);
+      }
 
-     print("Page change!");
-     if (!_canUpdateFocalLatLng) {
-       if (_tappedMarkerIndex == index) {
-         print("Es wurde zu einem anderen Marker geklickt!");
-         _updateSelectedCard(index);
-       }
-       else{
-         print("Es passiert nichts!");
-       }
-     } else if (_canUpdateFocalLatLng) {
-       print("Es wurde zu einer anderen Pageview Card geswiped!");
-       _updateSelectedCard(index);
-     }
-
-
-   }
-   doPageChange = true;
+    }
+    else{
+      print("Kein Pagechange !");
+    }
+    doPageChange = true;
 
   }
 
