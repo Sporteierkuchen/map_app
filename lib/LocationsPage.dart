@@ -1096,7 +1096,7 @@ class LocationsPageState extends State<LocationsPage> {
                                   print(
                                       "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
 
-                                  if(anzalnaehsterOrte >1 && anzalnaehsterOrte <= index ){
+                                  if(anzalnaehsterOrte <= index ){
                                     doPageChange = false;
                                   }
 
@@ -1261,7 +1261,7 @@ class LocationsPageState extends State<LocationsPage> {
                                 print(
                                     "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
 
-                                if(anzalnaehsterOrte >1 && anzalnaehsterOrte <= index ){
+                                if(anzalnaehsterOrte <= index ){
                                   doPageChange = false;
                                 }
 
