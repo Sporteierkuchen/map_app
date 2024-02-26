@@ -40,7 +40,6 @@ class LocationsPageState extends State<LocationsPage> {
 
 
   final fieldText = TextEditingController();
-  final srollcontroller = ScrollController();
 
   late MapTileLayerController _mapController;
   late MapZoomPanBehavior _zoomPanBehavior;
@@ -419,7 +418,6 @@ class LocationsPageState extends State<LocationsPage> {
       try {
         if (this.fieldText.value.text.trim().isEmpty ||
             karteOhneGesuchteOrte == false) {
-          srollcontroller.jumpTo(0.0);
         }
       } catch (e) {}
 
@@ -431,7 +429,7 @@ class LocationsPageState extends State<LocationsPage> {
       return Scaffold(
         body: SafeArea(
           child: SingleChildScrollView(
-            controller: srollcontroller,
+            physics: NeverScrollableScrollPhysics(),
             child: Stack(
               alignment: Alignment.topCenter,
               children: [
@@ -1037,167 +1035,343 @@ class LocationsPageState extends State<LocationsPage> {
         print("Suchfeld gefüllt!");
         getItemsListe();
 
-        return Padding(
-          padding: (MediaQuery.of(context).orientation == Orientation.portrait)
-              ? const EdgeInsets.only(top: 145)
-              : const EdgeInsets.only(top: 60),
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: Card(
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                side: const BorderSide(color: Colors.black, width: 1.0),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              margin:
-              const EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 20),
-              elevation: 3,
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 10, right: 10, top: 5, bottom: 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    getPositionsmeldung(),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 2),
-                      child: Text(
-                        "ERGEBNISSE",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black,
-                          fontSize: 16,
+        double margin = MediaQuery.of(context).orientation == Orientation.portrait ?  150 : 60;
+
+        return
+
+          showAllResults ?
+
+          Container(
+            color: Colors.transparent,
+            margin: EdgeInsets.only(top: margin),
+            height: (MediaQuery.of(context).size.height * 0.91 - MediaQuery.of(context).padding.top) - margin,
+            child:
+
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Card(
+                color: Colors.white,
+                semanticContainer: false,
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(color: Colors.black, width: 1.0),
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                margin:
+                const EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 10),
+                elevation: 3,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      left: 10, right: 10, top: 5, bottom: 0),
+                  child:
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      getPositionsmeldung(),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          "ERGEBNISSE",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
-                    ),
-                    _orteAnzeigenInListe.isEmpty
-                        ? Padding(
-                      padding: EdgeInsets.only(bottom: 5),
-                      child: Text("Nichts gefunden!"),
-                    )
-                        : ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _orteAnzeigenInListe.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () {
-                              print(
-                                  "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
+                      _orteAnzeigenInListe.isEmpty
+                          ? Padding(
+                        padding: EdgeInsets.only(bottom: 5),
+                        child: Text(
+                           "Nichts gefunden!"),
+                      )
+                          :
 
-                              if(anzalnaehsterOrte >1 && anzalnaehsterOrte <= index ){
-                                doPageChange = false;
-                              }
+                      Expanded(
+                        child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _orteAnzeigenInListe.length,
+                            itemBuilder: (context, index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  print(
+                                      "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
 
-                              setState(() {
-                                if (isLocationavailable()) {
-                                  _currentSelectedIndex = index + 1;
-                                } else {
-                                  _currentSelectedIndex = index;
-                                }
+                                  if(anzalnaehsterOrte >1 && anzalnaehsterOrte <= index ){
+                                    doPageChange = false;
+                                  }
 
-                                showSearchlist = false;
-                                mapLoaded = false;
-                                karteOhneGesuchteOrte = false;
-                                updatePageviewsSelectedPage = true;
+                                  setState(() {
+                                    if (isLocationavailable()) {
+                                      _currentSelectedIndex = index + 1;
+                                    } else {
+                                      _currentSelectedIndex = index;
+                                    }
 
-                              });
-                            },
-                            child: Container(
-                              //color: Colors.blue,
-                                margin: const EdgeInsets.only(
-                                    top: 5, bottom: 5),
-                                child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      //color: Colors.blue,
-                                      margin: const EdgeInsets.only(
-                                          left: 0,
-                                          right: 10,
-                                          top: 0,
-                                          bottom: 0),
-                                      child: Container(
-                                        padding: const EdgeInsets.only(
-                                            left: 10,
-                                            right: 10,
-                                            top: 10,
-                                            bottom: 10),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                          BorderRadius.circular(10),
-                                          color: Color(0xFF7B1A33),
+                                    showSearchlist = false;
+                                    mapLoaded = false;
+                                    karteOhneGesuchteOrte = false;
+                                    updatePageviewsSelectedPage = true;
+                                  });
+                                },
+                                child: Container(
+                                  //color: Colors.blue,
+                                    margin: const EdgeInsets.only(
+                                        top: 5, bottom: 5),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          //color: Colors.blue,
+                                          margin: const EdgeInsets.only(
+                                              left: 0,
+                                              right: 10,
+                                              top: 0,
+                                              bottom: 0),
+                                          child: Container(
+                                            padding: const EdgeInsets.only(
+                                                left: 10,
+                                                right: 10,
+                                                top: 10,
+                                                bottom: 10),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                              BorderRadius.circular(10),
+                                              color: Color(0xFF7B1A33),
+                                            ),
+                                            child: Text(
+                                              isLocationavailable()
+                                                  ? "${roundDouble(_orteAnzeigenInListe[index].entfernung, 2)} km"
+                                                  : "? km",
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                        child: Text(
-                                          isLocationavailable()
-                                              ? "${roundDouble(_orteAnzeigenInListe[index].entfernung, 2)} km"
-                                              : "? km",
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                            fontSize: 13,
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _orteAnzeigenInListe[index].name,
+                                                softWrap: true,
+                                                style: const TextStyle(
+                                                  height: 0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              Text(
+                                                "(${_orteAnzeigenInListe[index].town}, ${_orteAnzeigenInListe[index].state}, ${_orteAnzeigenInListe[index].country})",
+                                                softWrap: true,
+                                                style: const TextStyle(
+                                                  height: 0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.grey,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                height: 5,
+                                              ),
+                                              Text(
+                                                _orteAnzeigenInListe[index].adress,
+                                                softWrap: true,
+                                                style: const TextStyle(
+                                                  height: 0,
+                                                  fontWeight: FontWeight.normal,
+                                                  color: Colors.grey,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            _orteAnzeigenInListe[index]
-                                                .name,
-                                            softWrap: true,
-                                            style: const TextStyle(
-                                              height: 0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          Text(
-                                            "(${_orteAnzeigenInListe[index].town}, ${_orteAnzeigenInListe[index].state}, ${_orteAnzeigenInListe[index].country})",
-                                            softWrap: true,
-                                            style: const TextStyle(
-                                              height: 0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            height: 5,
-                                          ),
-                                          Text(
-                                            _orteAnzeigenInListe[index]
-                                                .adress,
-                                            softWrap: true,
-                                            style: const TextStyle(
-                                              height: 0,
-                                              fontWeight: FontWeight.normal,
-                                              color: Colors.grey,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                )),
-                          );
-                        }),
-                    getAllResultsContainer(),
-                    const SizedBox(height: 10),
-                  ],
+                                      ],
+                                    )),
+                              );
+                            }),
+                      ),
+                      getAllResultsContainer(),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
+          )
+              :
+          Container(
+            color: Colors.transparent,
+            margin: EdgeInsets.only(top: margin),
+            child:
+
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Card(
+                color: Colors.white,
+                semanticContainer: false,
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(color: Colors.black, width: 1.0),
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                margin:
+                const EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 20),
+                elevation: 3,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      left: 10, right: 10, top: 5, bottom: 0),
+                  child:
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      getPositionsmeldung(),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          "ERGEBNISSE",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      _orteAnzeigenInListe.isEmpty
+                          ? Padding(
+                        padding: EdgeInsets.only(bottom: 5),
+                        child: Text(
+                            "Nichts gefunden!"),
+                      )
+                          :
+
+                      ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _orteAnzeigenInListe.length,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                print(
+                                    "Ausgewählter Ort: ${_orteAnzeigenInListe[index].name}");
+
+                                if(anzalnaehsterOrte >1 && anzalnaehsterOrte <= index ){
+                                  doPageChange = false;
+                                }
+
+                                setState(() {
+                                  if (isLocationavailable()) {
+                                    _currentSelectedIndex = index + 1;
+                                  } else {
+                                    _currentSelectedIndex = index;
+                                  }
+
+                                  showSearchlist = false;
+                                  mapLoaded = false;
+                                  karteOhneGesuchteOrte = false;
+                                  updatePageviewsSelectedPage = true;
+                                });
+                              },
+                              child: Container(
+                                //color: Colors.blue,
+                                  margin: const EdgeInsets.only(
+                                      top: 5, bottom: 5),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        //color: Colors.blue,
+                                        margin: const EdgeInsets.only(
+                                            left: 0,
+                                            right: 10,
+                                            top: 0,
+                                            bottom: 0),
+                                        child: Container(
+                                          padding: const EdgeInsets.only(
+                                              left: 10,
+                                              right: 10,
+                                              top: 10,
+                                              bottom: 10),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                            BorderRadius.circular(10),
+                                            color: Color(0xFF7B1A33),
+                                          ),
+                                          child: Text(
+                                            isLocationavailable()
+                                                ? "${roundDouble(_orteAnzeigenInListe[index].entfernung, 2)} km"
+                                                : "? km",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _orteAnzeigenInListe[index].name,
+                                              softWrap: true,
+                                              style: const TextStyle(
+                                                height: 0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            Text(
+                                              "(${_orteAnzeigenInListe[index].town}, ${_orteAnzeigenInListe[index].state}, ${_orteAnzeigenInListe[index].country})",
+                                              softWrap: true,
+                                              style: const TextStyle(
+                                                height: 0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                              height: 5,
+                                            ),
+                                            Text(
+                                              _orteAnzeigenInListe[index].adress,
+                                              softWrap: true,
+                                              style: const TextStyle(
+                                                height: 0,
+                                                fontWeight: FontWeight.normal,
+                                                color: Colors.grey,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  )),
+                            );
+                          }),
+                      getAllResultsContainer(),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+
       }
     }
     return Container();
